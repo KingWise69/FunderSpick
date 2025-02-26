@@ -46,12 +46,13 @@
     "react-scripts": "5.0.1",
     "react-vis": "^1.12.1",
     "recharts": "^2.15.1",
+    "serve": "^14.2.4",
     "web-vitals": "^2.1.4",
     "xlsx": "^0.18.5",
     "yup": "^0.32.11"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "serve -s build -l 1000",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
