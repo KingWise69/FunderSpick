@@ -111,10 +111,10 @@ const Sidebar = () => {
           </SubMenu>
 
           <SubMenu title="Human Resource Management" icon={<WorkOutlineIcon />}>
-            <Item title="Employee List/Record" to="/hr/employees" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
-            <Item title="Employee Timestamp" to="/hr/timestamps" icon={<TimelineIcon />} selected={selected} setSelected={setSelected} />
-            <Item title="Payroll" to="/hr/payroll" icon={<PaymentIcon />} selected={selected} setSelected={setSelected} />
-            <Item title="HR Reports" to="/hr/reports" icon={<ReportIcon />} selected={selected} setSelected={setSelected} />
+            <Item title="Employee List/Record" to="/HRM/list" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+            <Item title="Employee Timestamp" to="/HRM/timestamp" icon={<TimelineIcon />} selected={selected} setSelected={setSelected} />
+            <Item title="Payroll" to="/HRM/payroll" icon={<PaymentIcon />} selected={selected} setSelected={setSelected} />
+            <Item title="HR Reports" to="/HRM/reports" icon={<ReportIcon />} selected={selected} setSelected={setSelected} />
           </SubMenu>
         </Menu>
       </ProSidebar>

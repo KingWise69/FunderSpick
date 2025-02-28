@@ -47,6 +47,11 @@ import Leads from "./scenes/CRM/leads";
 import Deals from "./scenes/CRM/deals";
 import Analytics from "./scenes/CRM/analytics";
 
+/*HRM*/
+import List from "./scenes/HRM/list";
+import Payroll from "./scenes/HRM/payroll";
+import Reports from "./scenes/HRM/reports";
+import Timestamp from "./scenes/HRM/timestamp";
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -96,10 +101,7 @@ function App() {
               <Route path="/inventory/customer" element={<CustomerList />} />
 
 
-              {/*CRM*/}
-              <Route path="/CRM/leads" element={<Leads />} />
-              <Route path="/CRM/deals" element={<Deals />} />
-              <Route path="/CRM/analytics" element={<Analytics />} />
+              
 
 
 
@@ -112,6 +114,21 @@ function App() {
               <Route path="/vouchers/credit" element={<CreditVoucher />} />
               <Route path="/vouchers/debit" element={<DebitVoucher />} />
               <Route path="/vouchers/create" element={<CreateVoucher />} />
+
+
+
+              {/*CRM*/}
+              <Route path="/CRM/leads" element={<Leads />} />
+              <Route path="/CRM/deals" element={<Deals />} />
+              <Route path="/CRM/analytics" element={<Analytics />} />
+
+              {/*HRM*/}
+              <Route path="/HRM/list" element={<List />} />
+              <Route path="/HRM/payroll" element={<Payroll />} />
+              <Route path="/HRM/reports" element={<Reports />} />
+              <Route path="/HRM/timestamp" element={<Timestamp />} />
+
+
             </Routes>
           </main>
         </div>
