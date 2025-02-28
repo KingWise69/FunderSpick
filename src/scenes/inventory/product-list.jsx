@@ -8,7 +8,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { Edit, Delete, VisibilityOff, CloudUpload, GetApp, Close } from "@mui/icons-material";
+import { Edit, Delete, VisibilityOff, CloudUpload, GetApp, Close, PictureAsPdf } from "@mui/icons-material";
 import { useTheme } from "@mui/material";
 import { tokens } from "../../theme";
 import jsPDF from "jspdf";
@@ -218,7 +218,7 @@ const ProductListPage = () => {
           Import Products
         </Button>
         <Box>
-          <Button variant="contained" color="error" startIcon={<GetApp />} onClick={handleDownloadPDF} sx={{ ml: 2 }}>
+          <Button variant="contained" color="error" startIcon={<PictureAsPdf />} onClick={handleDownloadPDF} sx={{ ml: 2 }}>
             Download PDF
           </Button>
           <Button variant="contained" color="success" startIcon={<GetApp />} onClick={handleDownloadExcel} sx={{ ml: 2 }}>

@@ -9,7 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { GetApp, DateRange } from "@mui/icons-material";
+import { GetApp, DateRange, CloudUpload, PictureAsPdf } from "@mui/icons-material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -159,10 +159,10 @@ const StockMovementPage = () => {
 
       {/* Action Buttons */}
       <Box display="flex" justifyContent="space-between" mt={4}>
-        <Button variant="contained" color="secondary">
+        <Button variant="contained" color="secondary" startIcon={<CloudUpload/>} onClick={()=> handleDownload("Import Stock Data")}>
           Import Stock Data
         </Button>
-        <Button variant="contained" color="error" startIcon={<GetApp />} onClick={() => handleDownload("PDF")}>
+        <Button variant="contained" color="error" startIcon={<PictureAsPdf />} onClick={() => handleDownload("PDF")}>
           Download PDF
         </Button>
         <Button variant="contained" color="success" startIcon={<GetApp />} onClick={() => handleDownload("Excel")}>
