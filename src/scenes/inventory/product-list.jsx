@@ -188,8 +188,8 @@ const ProductListPage = () => {
         >
           <input {...getInputProps()} />
           <Typography sx={{ color: isDarkMode ? "white" : "white" }}>
-  {formData.image ? "Image Selected" : "Drag & drop an image here, or click to select one"}
-</Typography>
+            {formData.image ? "Image Selected" : "Drag & drop an image here, or click to select one"}
+          </Typography>
 
           {formData.image && (
             <Box mt={1} display="flex" alignItems="center" gap={1}>
@@ -218,20 +218,10 @@ const ProductListPage = () => {
           Import Products
         </Button>
         <Box>
-          <Button
-            variant="outlined"
-            sx={{ color: isDarkMode ? "white" : "black", borderColor: isDarkMode ? "white" : "black" }}
-            startIcon={<GetApp />}
-            onClick={handleDownloadPDF}
-          >
+          <Button variant="contained" color="error" startIcon={<GetApp />} onClick={handleDownloadPDF} sx={{ ml: 2 }}>
             Download PDF
           </Button>
-          <Button
-            variant="outlined"
-            sx={{ color: isDarkMode ? "white" : "black", borderColor: isDarkMode ? "white" : "black" }}
-            startIcon={<GetApp />}
-            onClick={handleDownloadExcel}
-          >
+          <Button variant="contained" color="success" startIcon={<GetApp />} onClick={handleDownloadExcel} sx={{ ml: 2 }}>
             Download Excel
           </Button>
         </Box>
