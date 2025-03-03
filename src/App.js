@@ -53,6 +53,10 @@ import Payroll from "./scenes/HRM/payroll";
 import Reports from "./scenes/HRM/reports";
 import Timestamp from "./scenes/HRM/timestamp";
 
+/*POS*/
+
+import Beverages from "./scenes/pos/beverages";
+
 function App() {
   const [theme, colorMode] = useMode();
   const [isSidebar, setIsSidebar] = useState(true);
@@ -127,6 +131,13 @@ function App() {
               <Route path="/HRM/payroll" element={<Payroll />} />
               <Route path="/HRM/reports" element={<Reports />} />
               <Route path="/HRM/timestamp" element={<Timestamp />} />
+
+
+
+              {/*POS*/}
+
+              <Route path="/POS/beverages" element={<Beverages />} />
+
 
 
             </Routes>

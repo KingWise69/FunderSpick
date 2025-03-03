@@ -26,6 +26,22 @@ import ReportIcon from "@mui/icons-material/Report";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
+import CakeIcon from "@mui/icons-material/Cake";
+import LocalDrinkIcon from "@mui/icons-material/LocalDrink";
+import LocalCafeIcon from "@mui/icons-material/LocalCafe";
+import SyncAltIcon from "@mui/icons-material/SyncAlt";
+import PauseCircleOutlineIcon from "@mui/icons-material/PauseCircleOutline";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import ReplayIcon from "@mui/icons-material/Replay";
+import InventoryIcon from "@mui/icons-material/Inventory";
+import StorageIcon from "@mui/icons-material/Storage";
+import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import SettingsIcon from "@mui/icons-material/Settings";
+import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
+import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
+
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   return (
@@ -116,6 +132,29 @@ const Sidebar = () => {
             <Item title="Payroll" to="/HRM/payroll" icon={<PaymentIcon />} selected={selected} setSelected={setSelected} />
             <Item title="HR Reports" to="/HRM/reports" icon={<ReportIcon />} selected={selected} setSelected={setSelected} />
           </SubMenu>
+
+         <SubMenu title="Point Of Sale (POS)" icon={<ShoppingCartOutlinedIcon />}>
+  <SubMenu title="New Sales" icon={<BusinessCenterOutlinedIcon />}>
+  <Item title="All" to="/pos/all" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
+      <Item title="Favourite" to="/pos/fav" icon={<StarBorderIcon />} selected={selected} setSelected={setSelected} />
+      <Item title="Dessert" to="/pos/dessert" icon={<CakeIcon />} selected={selected} setSelected={setSelected} />
+      <Item title="Juices" to="/pos/juices" icon={<LocalDrinkIcon />} selected={selected} setSelected={setSelected} />
+      <Item title="Beverages" to="/pos/beverages" icon={<LocalCafeIcon />} selected={selected} setSelected={setSelected} />
+      <Item title="Stock Movement" to="/inventory/stock" icon={<SyncAltIcon />} selected={selected} setSelected={setSelected} />
+      <Item title="Hold Orders" to="/pos/hold" icon={<PauseCircleOutlineIcon />} selected={selected} setSelected={setSelected} />
+      <Item title="Discounts & Promotions" to="/pos/dis" icon={<LocalOfferIcon />} selected={selected} setSelected={setSelected} />
+      <Item title="Refunds & Returns" to="/pos/refund" icon={<ReplayIcon />} selected={selected} setSelected={setSelected} />
+  </SubMenu>
+
+  <Item title="Manage Sales" to="/pos/manage" icon={<TimelineIcon />} selected={selected} setSelected={setSelected} />
+  <Item title="Products" to="/pos/products" icon={<InventoryIcon />} selected={selected} setSelected={setSelected} />
+  <Item title="Inventory" to="/pos/inventory" icon={<StorageIcon />} selected={selected} setSelected={setSelected} />
+  <Item title="Payments" to="/pos/payments" icon={<PaymentIcon />} selected={selected} setSelected={setSelected} />
+  <Item title="Customers" to="/pos/customers" icon={<PeopleOutlineIcon />} selected={selected} setSelected={setSelected} />
+  <Item title="Reports" to="/pos/reports" icon={<AssessmentIcon />} selected={selected} setSelected={setSelected} />
+  <Item title="Settings" to="/pos/settings" icon={<SettingsIcon />} selected={selected} setSelected={setSelected} />
+</SubMenu>
+
         </Menu>
       </ProSidebar>
     </Box>
