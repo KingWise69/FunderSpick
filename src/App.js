@@ -54,8 +54,27 @@ import Reports from "./scenes/HRM/reports";
 import Timestamp from "./scenes/HRM/timestamp";
 
 /*POS*/
+import New_Sales from "./scenes/pos/new_sales";
+import Favorites from "./scenes/pos/fav";
 
 import Beverages from "./scenes/pos/beverages";
+import Dessert from "./scenes/pos/dessert";
+import Hold from "./scenes/pos/hold";
+import Dis from "./scenes/pos/dis";
+import Refund from "./scenes/pos/refund";
+import Movement from "./scenes/pos/stock";
+import Products from "./scenes/pos/products";
+import Manage_Sales from "./scenes/pos/manage";
+import Inventory_Manage from "./scenes/pos/inventory";
+import Manage_Payments from "./scenes/pos/payments";
+import Manage_Customers from "./scenes/pos/customers";
+import Manage_Reports from "./scenes/pos/reports";
+import Manage_Settings from "./scenes/pos/settings";
+
+
+
+
+import { Discount, Favorite } from "@mui/icons-material";
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -135,8 +154,22 @@ function App() {
 
 
               {/*POS*/}
+              <Route path="/pos/new_sales" element={<New_Sales />} />
+              <Route path="/pos/fav" element={<Favorites />} />
 
-              <Route path="/POS/beverages" element={<Beverages />} />
+              <Route path="/pos/beverages" element={<Beverages />} />
+              <Route path="/pos/dessert" element={<Dessert />} />
+              <Route path="/pos/hold" element={<Hold />} />
+              <Route path="/pos/dis" element={<Dis />} />
+              <Route path="/pos/refund" element={<Refund />} />
+              <Route path="/pos/stock" element={<Movement />} />
+              <Route path="/pos/products" element={<Products />} />
+              <Route path="/pos/manage" element={<Manage_Sales />} />
+              <Route path="/pos/inventory" element={<Inventory_Manage />} />
+              <Route path="/pos/payments" element={<Manage_Payments />} />
+              <Route path="/pos/customers" element={<Manage_Customers />} />
+              <Route path="/pos/reports" element={<Manage_Reports />} />
+              <Route path="/pos/settings" element={<Manage_Settings />} />
 
 
 
