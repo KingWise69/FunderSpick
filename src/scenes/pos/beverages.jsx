@@ -38,12 +38,12 @@ const beveragesData = [
   { id: 11, name: "Tusker Lite", type: "Alcoholic Beverage", price: 4800, stock: 30, image: "/assets/Tusker-Lite.png" },
   { id: 12, name: "Redds Vodka Lemon", type: "Alcoholic Beverage", price: 5000, stock: 25, image: "/assets/redd-s_vodka_lemoncl.jpg" },
   { id: 13, name: "Mirinda Fruity", type: "Soft Drink", price: 1500, stock: 40, image: "/assets/mirinda.png" },
-  { id: 14, name: "Sprite", type: "Soft Drink", price: 1500, stock: 35, image: "/assets/sprite.png" },
+  { id: 14, name: "Sprite", type: "Soft Drink", price: 1500, stock: 35, image: "/assets/Sprite.png" },
   { id: 15, name: "Krest Bitter Lemon", type: "Soft Drink", price: 1500, stock: 20, image: "/assets/krest.jpg" },
   { id: 16, name: "Minute Maid Apple", type: "Juice", price: 2000, stock: 25, image: "/assets/maid2.jpg" },
   { id: 17, name: "Minute Maid Orange", type: "Juice", price: 2000, stock: 30, image: "/assets/maid1.png" },
   { id: 18, name: "Novida Pineapple", type: "Soft Drink", price: 1500, stock: 45, image: "/assets/novida.jpg" },
-  { id: 19, name: "Novida Apple", type: "Soft Drink", price: 1500, stock: 50, image: "/assets/novida_apple.jpg" },
+  { id: 19, name: "Novida Apple", type: "Soft Drink", price: 1500, stock: 50, image: "/assets/Novida_apple.jpg" },
   { id: 20, name: "Uganda Waragi", type: "Alcoholic Beverage", price: 6000, stock: 20, image: "/assets/Waragi-OriginalLarge.jpg" },
   
   // Hot Drinks
