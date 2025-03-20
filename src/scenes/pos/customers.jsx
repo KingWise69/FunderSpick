@@ -6,6 +6,10 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  TextField,
+  Modal,
+  Grid,
+  InputAdornment,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { MoreVert, Edit, VisibilityOff, Delete, CloudUpload, GetApp, PictureAsPdf } from "@mui/icons-material";
@@ -28,6 +32,15 @@ const CustomerListPage = () => {
   const [customers, setCustomers] = useState(initialCustomers);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [openModal, setOpenModal] = useState(false); // For the modal
+  const [newCustomer, setNewCustomer] = useState({
+    code: "",
+    name: "",
+    phone: "",
+    email: "",
+    country: "",
+    city: "",
+  });
 
   // Handle Open Action Menu
   const handleOpenMenu = (event, customer) => {
@@ -67,6 +80,31 @@ const CustomerListPage = () => {
   // Handle Export to Excel (Mock Action)
   const handleDownloadExcel = () => {
     alert("Downloading customer list as Excel...");
+  };
+
+  // Handle Create Customer Form Submission
+  const handleCreateCustomer = () => {
+    setCustomers([
+      ...customers,
+      {
+        id: customers.length + 1,
+        code: newCustomer.code,
+        name: newCustomer.name,
+        phone: newCustomer.phone,
+        email: newCustomer.email,
+        country: newCustomer.country,
+        city: newCustomer.city,
+      },
+    ]);
+    setOpenModal(false); // Close modal after adding customer
+    setNewCustomer({
+      code: "",
+      name: "",
+      phone: "",
+      email: "",
+      country: "",
+      city: "",
+    }); // Reset form fields
   };
 
   // Table Columns
@@ -110,7 +148,7 @@ const CustomerListPage = () => {
 
       {/* Action Buttons */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Button variant="contained" sx={{ backgroundColor: "purple", color: "white" }}>
+        <Button variant="contained" sx={{ backgroundColor: "purple", color: "white" }} onClick={() => setOpenModal(true)}>
           Create Customer
         </Button>
         <Box display="flex" gap={2}>
@@ -139,6 +177,85 @@ const CustomerListPage = () => {
           }}
         />
       </Box>
+
+      {/* Modal for Creating Customer */}
+      <Modal open={openModal} onClose={() => setOpenModal(false)}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            backgroundColor: "white",
+            padding: "20px",
+            borderRadius: "8px",
+            boxShadow: 24,
+            width: "400px",
+          }}
+        >
+          <Typography variant="h6" mb={2}>
+            Create New Customer
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Code"
+                value={newCustomer.code}
+                onChange={(e) => setNewCustomer({ ...newCustomer, code: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Customer Name"
+                value={newCustomer.name}
+                onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Phone Number"
+                value={newCustomer.phone}
+                onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">+256</InputAdornment>,
+                }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Email"
+                value={newCustomer.email}
+                onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Country"
+                value={newCustomer.country}
+                onChange={(e) => setNewCustomer({ ...newCustomer, country: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="City"
+                value={newCustomer.city}
+                onChange={(e) => setNewCustomer({ ...newCustomer, city: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12} mt={2}>
+              <Button fullWidth variant="contained" sx={{ backgroundColor: "purple" }} onClick={handleCreateCustomer}>
+                Create Customer
+              </Button>
+            </Grid>
+          </Grid>
+        </Box>
+      </Modal>
     </Box>
   );
 };
