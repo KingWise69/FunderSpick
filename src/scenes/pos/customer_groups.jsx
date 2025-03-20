@@ -1,167 +1,213 @@
-import React, { useState } from 'react';
-import { Box, Typography, Button, TextField, Select, MenuItem, Grid, IconButton, Dialog, DialogActions, DialogContent, DialogTitle, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Pagination } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import FileExcelIcon from '@mui/icons-material/InsertDriveFile'; 
-import FilePdfIcon from '@mui/icons-material/PictureAsPdf'; 
-import { ExcelExport, PDFExport } from './Export'; 
+import { useState } from "react";
+import {
+  Box,
+  Button,
+  Typography,
+  IconButton,
+  Menu,
+  MenuItem,
+  TextField,
+  Modal,
+  Grid,
+  InputAdornment,
+} from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
+import { MoreVert, Edit, VisibilityOff, Delete, CloudUpload, GetApp, PictureAsPdf } from "@mui/icons-material";
+import { useTheme } from "@mui/material";
+import { tokens } from "../../theme";
 
 const CustomerGroupsPage = () => {
-  const [groups, setGroups] = useState([
-    { id: 1, name: 'VIP Customers', description: 'High-value customers', status: 'Active' },
-    { id: 2, name: 'Regular Customers', description: 'Frequent buyers', status: 'Inactive' },
-    { id: 3, name: 'New Customers', description: 'Customers who joined recently', status: 'Active' },
-  ]);
-  
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filter, setFilter] = useState("All");
-  const [openDialog, setOpenDialog] = useState(false);
-  const [newGroup, setNewGroup] = useState({ name: '', description: '', status: 'Active' });
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
 
-  const handleSearchChange = (e) => setSearchTerm(e.target.value);
-  const handleFilterChange = (e) => setFilter(e.target.value);
-  const handleAddGroup = () => {
-    setGroups([...groups, { id: groups.length + 1, ...newGroup }]);
-    setOpenDialog(false);
-    setNewGroup({ name: '', description: '', status: 'Active' });
+  // Dummy Data for Customer Groups
+  const initialGroups = [
+    { id: 1, name: "Premium Clients", description: "High value clients", customerCount: 10 },
+    { id: 2, name: "Regular Clients", description: "Clients with recurring purchases", customerCount: 30 },
+    { id: 3, name: "Prospects", description: "Potential customers", customerCount: 50 },
+  ];
+
+  const [groups, setGroups] = useState(initialGroups);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
+  const [newGroup, setNewGroup] = useState({ name: "", description: "", customerCount: 0 });
+
+  // Handle Open Action Menu
+  const handleOpenMenu = (event, group) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedGroup(group);
   };
 
-  const handleDeleteGroup = (id) => setGroups(groups.filter((group) => group.id !== id));
-
-  const handleGroupEdit = (id) => {
-    // Add group editing functionality here
+  // Handle Close Action Menu
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+    setSelectedGroup(null);
   };
 
-  const filteredGroups = groups.filter(
-    (group) => group.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
-               (filter === "All" || group.status === filter)
-  );
+  // Handle Delete
+  const handleDelete = (id) => {
+    setGroups(groups.filter((group) => group.id !== id));
+    handleCloseMenu();
+  };
+
+  // Handle Hide (Mock action)
+  const handleHide = (id) => {
+    alert(`Group with ID ${id} is now hidden`);
+    handleCloseMenu();
+  };
+
+  // Handle Edit (Mock action)
+  const handleEdit = (id) => {
+    alert(`Editing group with ID ${id}`);
+    handleCloseMenu();
+  };
+
+  // Handle Export to PDF (Mock Action)
+  const handleDownloadPDF = () => {
+    alert("Downloading customer groups list as PDF...");
+  };
+
+  // Handle Export to Excel (Mock Action)
+  const handleDownloadExcel = () => {
+    alert("Downloading customer groups list as Excel...");
+  };
+
+  // Handle Create Group Form Submission
+  const handleCreateGroup = () => {
+    setGroups([
+      ...groups,
+      {
+        id: groups.length + 1,
+        name: newGroup.name,
+        description: newGroup.description,
+        customerCount: newGroup.customerCount,
+      },
+    ]);
+    setOpenModal(false); // Close modal after adding group
+    setNewGroup({ name: "", description: "", customerCount: 0 }); // Reset form fields
+  };
+
+  // Table Columns
+  const columns = [
+    { field: "name", headerName: "Group Name", flex: 1.5 },
+    { field: "description", headerName: "Description", flex: 2 },
+    { field: "customerCount", headerName: "Customer Count", flex: 1 },
+    {
+      field: "action",
+      headerName: "Action",
+      flex: 0.5,
+      renderCell: (params) => (
+        <>
+          <IconButton onClick={(event) => handleOpenMenu(event, params.row)}>
+            <MoreVert />
+          </IconButton>
+          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleCloseMenu}>
+            <MenuItem onClick={() => handleEdit(selectedGroup?.id)}>
+              <Edit sx={{ marginRight: 1 }} /> Edit
+            </MenuItem>
+            <MenuItem onClick={() => handleHide(selectedGroup?.id)}>
+              <VisibilityOff sx={{ marginRight: 1 }} /> Hide
+            </MenuItem>
+            <MenuItem onClick={() => handleDelete(selectedGroup?.id)} sx={{ color: "red" }}>
+              <Delete sx={{ marginRight: 1 }} /> Delete
+            </MenuItem>
+          </Menu>
+        </>
+      ),
+    },
+  ];
 
   return (
-    <Box p={3}>
-      <Box display="flex" justifyContent="space-between" mb={2}>
-        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>Customer Groups Management</Typography>
-        <Box display="flex" alignItems="center">
-          {/* Excel Export Button */}
-          <Button 
-            variant="contained" 
-            color="success" 
-            startIcon={<FileExcelIcon />} 
-            sx={{ mr: 2, backgroundColor: '#4caf50', '&:hover': { backgroundColor: '#388e3c' } }}
-          >
-            Excel
-          </Button>
+    <Box m="20px">
+      <Typography variant="h4" fontWeight="bold" mb={2}>
+        Customer Groups
+      </Typography>
 
-          {/* PDF Export Button */}
-          <Button 
-            variant="contained" 
-            color="error" 
-            startIcon={<FilePdfIcon />} 
-            sx={{ backgroundColor: '#f44336', '&:hover': { backgroundColor: '#d32f2f' } }}
-          >
-            PDF
+      {/* Action Buttons */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Button variant="contained" sx={{ backgroundColor: "purple", color: "white" }} onClick={() => setOpenModal(true)}>
+          Create Group
+        </Button>
+        <Box display="flex" gap={2}>
+          <Button variant="contained" sx={{ backgroundColor: "green", color: "white" }} startIcon={<CloudUpload />}>
+            Import
+          </Button>
+          <Button variant="contained" sx={{ backgroundColor: "red", color: "white" }} startIcon={<PictureAsPdf />} onClick={handleDownloadPDF}>
+            Download PDF
+          </Button>
+          <Button variant="contained" sx={{ backgroundColor: "green", color: "white" }} startIcon={<GetApp />} onClick={handleDownloadExcel}>
+            Download Excel
           </Button>
         </Box>
       </Box>
 
-      {/* Search and Filter Section */}
-      <Box display="flex" mb={2} justifyContent="space-between" alignItems="center" flexWrap="wrap">
-        <TextField 
-          label="Search Group" 
-          variant="outlined" 
-          value={searchTerm} 
-          onChange={handleSearchChange}
-          sx={{ flex: 1, minWidth: '200px', mr: 2 }} 
+      {/* Customer Group Table */}
+      <Box sx={{ height: "60vh" }}>
+        <DataGrid
+          rows={groups}
+          columns={columns}
+          sx={{
+            "& .MuiDataGrid-root": { border: "none" },
+            "& .MuiDataGrid-columnHeaders": { backgroundColor: colors.blueAccent[700] },
+            "& .MuiDataGrid-virtualScroller": { backgroundColor: colors.primary[400] },
+            "& .MuiDataGrid-footerContainer": { backgroundColor: colors.blueAccent[700] },
+          }}
         />
-        <Select value={filter} onChange={handleFilterChange} sx={{ minWidth: '200px' }}>
-          <MenuItem value="All">All</MenuItem>
-          <MenuItem value="Active">Active</MenuItem>
-          <MenuItem value="Inactive">Inactive</MenuItem>
-        </Select>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          startIcon={<AddIcon />} 
-          onClick={() => setOpenDialog(true)} 
-          sx={{ backgroundColor: '#7c4dff', '&:hover': { backgroundColor: '#5e35b1' } }}
+      </Box>
+
+      {/* Modal for Creating Group */}
+      <Modal open={openModal} onClose={() => setOpenModal(false)}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            backgroundColor: "white",
+            padding: "20px",
+            borderRadius: "8px",
+            boxShadow: 24,
+            width: "400px",
+          }}
         >
-          Add Group
-        </Button>
-      </Box>
-
-      {/* Customer Groups Table */}
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Group Name</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredGroups.map((group) => (
-              <TableRow key={group.id}>
-                <TableCell>{group.name}</TableCell>
-                <TableCell>{group.description}</TableCell>
-                <TableCell>{group.status}</TableCell>
-                <TableCell>
-                  <IconButton onClick={() => handleGroupEdit(group.id)} sx={{ color: '#1976d2' }}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleDeleteGroup(group.id)} sx={{ color: '#d32f2f' }}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      {/* Pagination */}
-      <Box display="flex" justifyContent="center" mt={2}>
-        <Pagination count={Math.ceil(groups.length / 10)} variant="outlined" color="primary" />
-      </Box>
-
-      {/* Add/Edit Group Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>Add New Group</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Group Name"
-            variant="outlined"
-            fullWidth
-            value={newGroup.name}
-            onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="Description"
-            variant="outlined"
-            fullWidth
-            value={newGroup.description}
-            onChange={(e) => setNewGroup({ ...newGroup, description: e.target.value })}
-            sx={{ mb: 2 }}
-          />
-          <Select
-            label="Status"
-            value={newGroup.status}
-            onChange={(e) => setNewGroup({ ...newGroup, status: e.target.value })}
-            fullWidth
-            sx={{ mb: 2 }}
-          >
-            <MenuItem value="Active">Active</MenuItem>
-            <MenuItem value="Inactive">Inactive</MenuItem>
-          </Select>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)} color="secondary">Cancel</Button>
-          <Button onClick={handleAddGroup} color="primary">Save</Button>
-        </DialogActions>
-      </Dialog>
+          <Typography variant="h6" mb={2}>
+            Create New Customer Group
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Group Name"
+                value={newGroup.name}
+                onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Description"
+                value={newGroup.description}
+                onChange={(e) => setNewGroup({ ...newGroup, description: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Customer Count"
+                type="number"
+                value={newGroup.customerCount}
+                onChange={(e) => setNewGroup({ ...newGroup, customerCount: parseInt(e.target.value) })}
+              />
+            </Grid>
+            <Grid item xs={12} mt={2}>
+              <Button fullWidth variant="contained" sx={{ backgroundColor: "purple" }} onClick={handleCreateGroup}>
+                Create Group
+              </Button>
+            </Grid>
+          </Grid>
+        </Box>
+      </Modal>
     </Box>
   );
 };

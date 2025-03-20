@@ -74,6 +74,10 @@ import Manage_Customers from "./scenes/pos/customers";
 import Manage_Reports from "./scenes/pos/reports";
 import Manage_Settings from "./scenes/pos/settings";
 import Customer_Group from "./scenes/pos/customer_groups";
+import User_Pos from "./scenes/pos/user";
+import Roles from "./scenes/pos/roles";
+import User_Sales from "./scenes/pos/sales";
+import User_Contact from "./scenes/pos/contact";
 
 // User
 import New_Sale from "./scenes/user/new_sales";
@@ -90,6 +94,7 @@ import Inventory_Manages from "./scenes/user/inventory";
 import Manage_Payment from "./scenes/user/payments";
 import Manage_Customer from "./scenes/user/customers";
 import Manage_Report from "./scenes/user/reports";
+
 
 // Login
 import Login from "./scenes/login/SignUp";
@@ -198,6 +203,10 @@ function App() {
               <Route path="/pos/reports" element={<Manage_Reports />} />
               <Route path="/pos/settings" element={<Manage_Settings />} />
               <Route path="/pos/customer_groups" element={<Customer_Group />} />
+              <Route path="/pos/user" element={<User_Pos />} />
+              <Route path="/pos/roles" element={<Roles />} />
+              <Route path="/pos/sales" element={<User_Sales />} />
+              <Route path="/pos/contact" element={<User_Contact />} />
 
               {/* User Routes */}
               <Route path="/user/new_sales" element={<New_Sale />} />

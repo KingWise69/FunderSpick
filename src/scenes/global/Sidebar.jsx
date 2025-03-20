@@ -90,10 +90,17 @@ const Sidebar = () => {
   </SubMenu>
 
   <SubMenu title="User Management" icon={<PeopleOutlinedIcon />}>
-              <Item title="Contacts" to="/pos/contacts" icon={<PersonAddIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Users" to="/pos/user" icon={<PersonAddIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Roles" to="/pos/roles" icon={<PeopleOutlineIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Sales Comission Agent" to="/pos/sales" icon={<GroupAddIcon />} selected={selected} setSelected={setSelected} />
+              
+            </SubMenu>
+
+            <SubMenu title="Contacts" icon={<PersonAddIcon />}>
+              
               <Item title="Customers" to="/pos/customers" icon={<PeopleOutlineIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Customer Groups" to="/pos/customer_groups" icon={<GroupAddIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Import Contacts" to="/pos/import_contacts" icon={<ImportContactsIcon />} selected={selected} setSelected={setSelected} />
+              
             </SubMenu>
 
   <Item title="Manage Sales" to="/pos/manage" icon={<TimelineIcon />} selected={selected} setSelected={setSelected} />
