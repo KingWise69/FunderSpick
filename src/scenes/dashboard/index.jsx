@@ -1,6 +1,6 @@
 import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
 import { tokens } from "../../theme";
-import { mockTransactions } from "../../data/mockData";
+import { mockTransactions, mockVouchers } from "../../data/mockData"; // Added mockVouchers
 import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 import EmailIcon from "@mui/icons-material/Email";
 import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
@@ -21,7 +21,7 @@ const Dashboard = () => {
     <Box m="20px">
       {/* HEADER */}
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Header title="DASHBOARD" subtitle="Welcome to your dashboard" />
+        <Header title="FINANCIAL DASHBOARD" subtitle="Welcome to your financial overview" />
 
         <Box>
           <Button
@@ -34,7 +34,7 @@ const Dashboard = () => {
             }}
           >
             <DownloadOutlinedIcon sx={{ mr: "10px" }} />
-            Download Reports
+            Download Financial Reports
           </Button>
         </Box>
       </Box>
@@ -46,7 +46,7 @@ const Dashboard = () => {
         gridAutoRows="140px"
         gap="20px"
       >
-        {/* ROW 1 */}
+        {/* ROW 1: KEY FINANCIAL METRICS */}
         <Box
           gridColumn="span 3"
           backgroundColor={colors.primary[400]}
@@ -55,7 +55,7 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title="12,361"
+            title="$12,361"
             subtitle="Opening Balance"
             progress="0.75"
             increase="+14%"
@@ -74,8 +74,8 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title="431,225"
-            subtitle="Todays's Transactions"
+            title="$431,225"
+            subtitle="Total Revenue"
             progress="0.50"
             increase="+21%"
             icon={
@@ -93,8 +93,8 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title="32,441"
-            subtitle="Today's Expenses"
+            title="$32,441"
+            subtitle="Total Expenses"
             progress="0.30"
             increase="+5%"
             icon={
@@ -112,8 +112,8 @@ const Dashboard = () => {
           justifyContent="center"
         >
           <StatBox
-            title="1,325,134"
-            subtitle="Todays's Net Income"
+            title="$1,325,134"
+            subtitle="Net Profit"
             progress="0.80"
             increase="+43%"
             icon={
@@ -124,7 +124,7 @@ const Dashboard = () => {
           />
         </Box>
 
-        {/* ROW 2 */}
+        {/* ROW 2: REVENUE OVERVIEW AND RECENT VOUCHERS */}
         <Box
           gridColumn="span 8"
           gridRow="span 2"
@@ -133,7 +133,7 @@ const Dashboard = () => {
           <Box
             mt="25px"
             p="0 30px"
-            display="flex "
+            display="flex"
             justifyContent="space-between"
             alignItems="center"
           >
@@ -143,14 +143,14 @@ const Dashboard = () => {
                 fontWeight="600"
                 color={colors.grey[100]}
               >
-                CashFlow
+                Revenue Overview
               </Typography>
               <Typography
                 variant="h3"
                 fontWeight="bold"
                 color={colors.greenAccent[500]}
               >
-                shs59,342.32
+                $59,342.32
               </Typography>
             </Box>
             <Box>
@@ -180,12 +180,12 @@ const Dashboard = () => {
             p="15px"
           >
             <Typography color={colors.grey[100]} variant="h5" fontWeight="600">
-              Balance Alert
+              Recent Vouchers
             </Typography>
           </Box>
-          {mockTransactions.map((transaction, i) => (
+          {mockVouchers.map((voucher, i) => (
             <Box
-              key={`${transaction.txId}-${i}`}
+              key={`${voucher.id}-${i}`}
               display="flex"
               justifyContent="space-between"
               alignItems="center"
@@ -198,51 +198,25 @@ const Dashboard = () => {
                   variant="h5"
                   fontWeight="600"
                 >
-                  {transaction.txId}
+                  {voucher.id}
                 </Typography>
                 <Typography color={colors.grey[100]}>
-                  {transaction.user}
+                  {voucher.type}
                 </Typography>
               </Box>
-              <Box color={colors.grey[100]}>{transaction.date}</Box>
+              <Box color={colors.grey[100]}>{voucher.date}</Box>
               <Box
                 backgroundColor={colors.greenAccent[300]}
                 p="5px 10px"
                 borderRadius="4px"
               >
-                ${transaction.cost}
+                ${voucher.amount}
               </Box>
             </Box>
           ))}
         </Box>
 
-        {/* ROW 3 */}
-        <Box
-          gridColumn="span 4"
-          gridRow="span 2"
-          backgroundColor={colors.primary[400]}
-          p="30px"
-        >
-          <Typography variant="h5" fontWeight="600">
-            Campaign
-          </Typography>
-          <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            mt="25px"
-          >
-            <ProgressCircle size="125" />
-            <Typography
-              variant="h5"
-              color={colors.greenAccent[500]}
-              sx={{ mt: "15px" }}
-            >
-              UGX48,352 revenue generated
-            </Typography>
-            <Typography>Includes extra misc expenditures and costs</Typography>
-          </Box>
-        </Box>
+        {/* ROW 3: EXPENDITURE OVERVIEW AND FINANCIAL HEALTH */}
         <Box
           gridColumn="span 4"
           gridRow="span 2"
@@ -253,7 +227,7 @@ const Dashboard = () => {
             fontWeight="600"
             sx={{ padding: "30px 30px 0 30px" }}
           >
-            Expenses Vs Income
+            Expenditure Overview
           </Typography>
           <Box height="250px" mt="-20px">
             <BarChart isDashboard={true} />
@@ -270,10 +244,23 @@ const Dashboard = () => {
             fontWeight="600"
             sx={{ marginBottom: "15px" }}
           >
-            Geography Based Traffic
+            Financial Health
           </Typography>
-          <Box height="200px">
-            <GeographyChart isDashboard={true} />
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            mt="25px"
+          >
+            <ProgressCircle size="125" />
+            <Typography
+              variant="h5"
+              color={colors.greenAccent[500]}
+              sx={{ mt: "15px" }}
+            >
+              85% Financial Health
+            </Typography>
+            <Typography>Based on revenue, expenses, and profit trends</Typography>
           </Box>
         </Box>
       </Box>

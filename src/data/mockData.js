@@ -1847,5 +1847,37 @@ export const mockRecentSales = [
     paymentStatusColor: "green",
   },
 ];
+export const mockVouchers = [
+  {
+    id: "V001",
+    type: "Credit",
+    date: "2023-10-01",
+    amount: 1500,
+  },
+  {
+    id: "V002",
+    type: "Debit",
+    date: "2023-10-02",
+    amount: 750,
+  },
+  {
+    id: "V003",
+    type: "Credit",
+    date: "2023-10-03",
+    amount: 2000,
+  },
+  {
+    id: "V004",
+    type: "Debit",
+    date: "2023-10-04",
+    amount: 500,
+  },
+  {
+    id: "V005",
+    type: "Credit",
+    date: "2023-10-05",
+    amount: 3000,
+  },
+];
 
 

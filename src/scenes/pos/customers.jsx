@@ -1,187 +1,146 @@
-import React, { useState } from 'react';
-import { Box, Typography, Button, TextField, Select, MenuItem, Grid, Card, CardContent, CardActions, IconButton, Dialog, DialogActions, DialogContent, DialogTitle, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Pagination } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import FileExcelIcon from '@mui/icons-material/InsertDriveFile'; 
-import FilePdfIcon from '@mui/icons-material/PictureAsPdf'; 
-import { ExcelExport, PDFExport } from './Export'; 
+import { useState } from "react";
+import {
+  Box,
+  Button,
+  Typography,
+  IconButton,
+  Menu,
+  MenuItem,
+} from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
+import { MoreVert, Edit, VisibilityOff, Delete, CloudUpload, GetApp, PictureAsPdf } from "@mui/icons-material";
+import { useTheme } from "@mui/material";
+import { tokens } from "../../theme";
 
-const CustomerPage = () => {
-  const [customers, setCustomers] = useState([
-    { id: 1, name: 'Kato Paul', email: 'kato.paul@gmail.com', phone: '+256701234567', status: 'Active' },
-    { id: 2, name: 'Nakato Amina', email: 'nakato.amina@yahoo.com', phone: '+256702345678', status: 'Inactive' },
-    { id: 3, name: 'Ochieng David', email: 'ochieng.david@gmail.com', phone: '+256703456789', status: 'Active' },
-    { id: 4, name: 'Nabukenya Sandra', email: 'nabukenya.sandra@hotmail.com', phone: '+256704567890', status: 'Active' },
-    { id: 5, name: 'Mugisha Jonathan', email: 'mugisha.jonathan@outlook.com', phone: '+256705678901', status: 'Inactive' },
-    { id: 6, name: 'Kizza Ivan', email: 'kizza.ivan@gmail.com', phone: '+256706789012', status: 'Active' },
-    { id: 7, name: 'Tukahirwa Naomi', email: 'tukahirwa.naomi@live.com', phone: '+256707890123', status: 'Inactive' },
-    { id: 8, name: 'Bukenya Isaac', email: 'bukenya.isaac@yahoo.com', phone: '+256708901234', status: 'Active' },
-    { id: 9, name: 'Ssebuuma Grace', email: 'ssebuuma.grace@gmail.com', phone: '+256709012345', status: 'Active' },
-    { id: 10, name: 'Nakitende Diana', email: 'nakitende.diana@hotmail.com', phone: '+256710123456', status: 'Inactive' }
-  ]);
-  
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filter, setFilter] = useState("All");
-  const [openDialog, setOpenDialog] = useState(false);
-  const [newCustomer, setNewCustomer] = useState({ name: '', email: '', phone: '', status: 'Active' });
+const CustomerListPage = () => {
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
 
-  const handleSearchChange = (e) => setSearchTerm(e.target.value);
-  const handleFilterChange = (e) => setFilter(e.target.value);
-  const handleAddCustomer = () => {
-    setCustomers([...customers, { id: customers.length + 1, ...newCustomer }]);
-    setOpenDialog(false);
-    setNewCustomer({ name: '', email: '', phone: '', status: 'Active' });
+  // Dummy Data with Customers from Uganda, India, Japan, Colombia, and USA
+  const initialCustomers = [
+    { id: 1, code: "CUST001", name: "John Mugisha", phone: "+256700123456", email: "johnm@example.com", country: "Uganda", city: "Kampala" },
+    { id: 2, code: "CUST002", name: "Rajesh Kumar", phone: "+91 9876543210", email: "rajesh.kumar@example.com", country: "India", city: "New Delhi" },
+    { id: 3, code: "CUST003", name: "Hiroshi Tanaka", phone: "+81 90-1234-5678", email: "hiroshi.tanaka@example.com", country: "Japan", city: "Tokyo" },
+    { id: 4, code: "CUST004", name: "Sofía Rodríguez", phone: "+57 300 4567890", email: "sofia.rodriguez@example.com", country: "Colombia", city: "Bogotá" },
+    { id: 5, code: "CUST005", name: "Michael Johnson", phone: "+1 555-789-4567", email: "michael.johnson@example.com", country: "USA", city: "New York" },
+  ];
+
+  const [customers, setCustomers] = useState(initialCustomers);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+
+  // Handle Open Action Menu
+  const handleOpenMenu = (event, customer) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedCustomer(customer);
   };
 
-  const handleDeleteCustomer = (id) => setCustomers(customers.filter((customer) => customer.id !== id));
-
-  const handleCustomerEdit = (id) => {
-    // Add customer editing functionality here
+  // Handle Close Action Menu
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+    setSelectedCustomer(null);
   };
 
-  const filteredCustomers = customers.filter(
-    (customer) => customer.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
-                  (filter === "All" || customer.status === filter)
-  );
+  // Handle Delete
+  const handleDelete = (id) => {
+    setCustomers(customers.filter((customer) => customer.id !== id));
+    handleCloseMenu();
+  };
+
+  // Handle Hide (Mock action)
+  const handleHide = (id) => {
+    alert(`Customer with ID ${id} is now hidden`);
+    handleCloseMenu();
+  };
+
+  // Handle Edit (Mock action)
+  const handleEdit = (id) => {
+    alert(`Editing customer with ID ${id}`);
+    handleCloseMenu();
+  };
+
+  // Handle Export to PDF (Mock Action)
+  const handleDownloadPDF = () => {
+    alert("Downloading customer list as PDF...");
+  };
+
+  // Handle Export to Excel (Mock Action)
+  const handleDownloadExcel = () => {
+    alert("Downloading customer list as Excel...");
+  };
+
+  // Table Columns
+  const columns = [
+    { field: "code", headerName: "Code", flex: 1 },
+    { field: "name", headerName: "Customer Name", flex: 1.5 },
+    { field: "phone", headerName: "Phone Number", flex: 1.2 },
+    { field: "email", headerName: "Email", flex: 1.5 },
+    { field: "country", headerName: "Country", flex: 1 },
+    { field: "city", headerName: "City", flex: 1 },
+    {
+      field: "action",
+      headerName: "Action",
+      flex: 0.5,
+      renderCell: (params) => (
+        <>
+          <IconButton onClick={(event) => handleOpenMenu(event, params.row)}>
+            <MoreVert />
+          </IconButton>
+          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleCloseMenu}>
+            <MenuItem onClick={() => handleEdit(selectedCustomer?.id)}>
+              <Edit sx={{ marginRight: 1 }} /> Edit
+            </MenuItem>
+            <MenuItem onClick={() => handleHide(selectedCustomer?.id)}>
+              <VisibilityOff sx={{ marginRight: 1 }} /> Hide
+            </MenuItem>
+            <MenuItem onClick={() => handleDelete(selectedCustomer?.id)} sx={{ color: "red" }}>
+              <Delete sx={{ marginRight: 1 }} /> Delete
+            </MenuItem>
+          </Menu>
+        </>
+      ),
+    },
+  ];
 
   return (
-    <Box p={3}>
-      <Box display="flex" justifyContent="space-between" mb={2}>
-        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>Customer Management</Typography>
-        <Box display="flex" alignItems="center">
-          {/* Excel Export Button */}
-          <Button 
-            variant="contained" 
-            color="success" 
-            startIcon={<FileExcelIcon />} 
-            sx={{ mr: 2, backgroundColor: '#4caf50', '&:hover': { backgroundColor: '#388e3c' } }}
-          >
-            Excel
-          </Button>
+    <Box m="20px">
+      <Typography variant="h4" fontWeight="bold" mb={2}>
+        Customer List
+      </Typography>
 
-          {/* PDF Export Button */}
-          <Button 
-            variant="contained" 
-            color="error" 
-            startIcon={<FilePdfIcon />} 
-            sx={{ backgroundColor: '#f44336', '&:hover': { backgroundColor: '#d32f2f' } }}
-          >
-            PDF
+      {/* Action Buttons */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Button variant="contained" sx={{ backgroundColor: "purple", color: "white" }}>
+          Create Customer
+        </Button>
+        <Box display="flex" gap={2}>
+          <Button variant="contained" sx={{ backgroundColor: "green", color: "white" }} startIcon={<CloudUpload />}>
+            Import
+          </Button>
+          <Button variant="contained" sx={{ backgroundColor: "red", color: "white" }} startIcon={<PictureAsPdf />} onClick={handleDownloadPDF}>
+            Download PDF
+          </Button>
+          <Button variant="contained" sx={{ backgroundColor: "green", color: "white" }} startIcon={<GetApp />} onClick={handleDownloadExcel}>
+            Download Excel
           </Button>
         </Box>
       </Box>
 
-      {/* Search and Filter Section */}
-      <Box display="flex" mb={2} justifyContent="space-between" alignItems="center" flexWrap="wrap">
-        <TextField 
-          label="Search Customer" 
-          variant="outlined" 
-          value={searchTerm} 
-          onChange={handleSearchChange}
-          sx={{ flex: 1, minWidth: '200px', mr: 2 }} 
-        />
-        <Select value={filter} onChange={handleFilterChange} sx={{ minWidth: '200px' }}>
-          <MenuItem value="All">All</MenuItem>
-          <MenuItem value="Active">Active</MenuItem>
-          <MenuItem value="Inactive">Inactive</MenuItem>
-        </Select>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          startIcon={<AddIcon />} 
-          onClick={() => setOpenDialog(true)} 
-          sx={{ backgroundColor: '#7c4dff', '&:hover': { backgroundColor: '#5e35b1' } }}
-        >
-          Add Customer
-        </Button>
-      </Box>
-
       {/* Customer Table */}
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Phone</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredCustomers.map((customer) => (
-              <TableRow key={customer.id}>
-                <TableCell>{customer.name}</TableCell>
-                <TableCell>{customer.email}</TableCell>
-                <TableCell>{customer.phone}</TableCell>
-                <TableCell>{customer.status}</TableCell>
-                <TableCell>
-                  <IconButton onClick={() => handleCustomerEdit(customer.id)} sx={{ color: '#1976d2' }}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleDeleteCustomer(customer.id)} sx={{ color: '#d32f2f' }}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      {/* Pagination */}
-      <Box display="flex" justifyContent="center" mt={2}>
-        <Pagination count={Math.ceil(customers.length / 10)} variant="outlined" color="primary" />
+      <Box sx={{ height: "60vh" }}>
+        <DataGrid
+          rows={customers}
+          columns={columns}
+          sx={{
+            "& .MuiDataGrid-root": { border: "none" },
+            "& .MuiDataGrid-columnHeaders": { backgroundColor: colors.blueAccent[700] },
+            "& .MuiDataGrid-virtualScroller": { backgroundColor: colors.primary[400] },
+            "& .MuiDataGrid-footerContainer": { backgroundColor: colors.blueAccent[700] },
+          }}
+        />
       </Box>
-
-      {/* Add/Edit Customer Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>Add New Customer</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Name"
-            variant="outlined"
-            fullWidth
-            value={newCustomer.name}
-            onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="Email"
-            variant="outlined"
-            fullWidth
-            value={newCustomer.email}
-            onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="Phone"
-            variant="outlined"
-            fullWidth
-            value={newCustomer.phone}
-            onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
-            sx={{ mb: 2 }}
-          />
-          <Select
-            label="Status"
-            value={newCustomer.status}
-            onChange={(e) => setNewCustomer({ ...newCustomer, status: e.target.value })}
-            fullWidth
-            sx={{ mb: 2 }}
-          >
-            <MenuItem value="Active">Active</MenuItem>
-            <MenuItem value="Inactive">Inactive</MenuItem>
-          </Select>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)} color="secondary">Cancel</Button>
-          <Button onClick={handleAddCustomer} color="primary">Save</Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 };
 
-export default CustomerPage;
+export default CustomerListPage;
