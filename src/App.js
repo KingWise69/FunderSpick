@@ -81,7 +81,7 @@ import User_Sales from "./scenes/pos/sales";
 import User_Contact from "./scenes/pos/contacts";
 import Import_Contact from "./scenes/pos/import_contacts";
 import Add from "./scenes/pos/Add";
-import list_p from "./scenes/pos/list";
+import List_p from "./scenes/pos/list";
 import Returns from "./scenes/pos/returns";
 
 
@@ -240,7 +240,7 @@ function App() {
               <Route path="/pos/contacts" element={<User_Contact />} />
               <Route path="/pos/import_contacts" element={<Import_Contact />} />
               <Route path="/pos/add" element={<Add />} />
-              <Route path="/pos/list" element={<list_p />} />
+              <Route path="/pos/list" element={<List_p />} />
               <Route path="/pos/returns" element={<Returns />} />
 
 
