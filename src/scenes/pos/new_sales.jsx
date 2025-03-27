@@ -24,39 +24,224 @@ import {
   DialogActions,
 } from "@mui/material";
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 
-// Dummy product data
+// Updated product data with expanded categories and subcategories
 const productData = [
-  { id: 1, name: "Fanta", category: "Soft Drink", price: 1500, rating: 4, stock: 50, image: "/assets/fanta.jpg", description: "A popular carbonated soft drink." },
-  { id: 2, name: "Mountain Dew", category: "Soft Drink", price: 1500, rating: 5, stock: 30, image: "/assets/dew.jpg", description: "Citrusy and refreshing soft drink." },
-  { id: 3, name: "Coca-Cola", category: "Soft Drink", price: 1500, rating: 3, stock: 45, image: "/assets/coca.jpg", description: "Classic soda with a unique taste." },
-  { id: 4, name: "Pepsi", category: "Soft Drink", price: 1500, rating: 4, stock: 25, image: "/assets/pepsi.jpg", description: "Sweet carbonated beverage." },
-  { id: 5, name: "AFIA JUICE Tropical", category: "Juice", price: 2000, rating: 4, stock: 20, image: "/assets/afia_tropical.jpg", description: "Tropical fruit juice." },
-  { id: 6, name: "Heineken Beer 330ml", category: "Alcoholic Beverage", price: 5000, rating: 5, stock: 60, image: "/assets/heineken.png", description: "Premium lager beer." },
-  { id: 7, name: "Bell Lager", category: "Alcoholic Beverage", price: 4500, rating: 4, stock: 40, image: "/assets/bell.png", description: "Popular beer in Uganda." },
-  { id: 8, name: "Chocolate Cake", category: "Dessert", price: 3500, rating: 4, stock: 30, image: "/assets/cake.jpg", description: "Rich and decadent chocolate cake." },
+  // Beverages
+  { 
+    id: 1, 
+    name: "Fanta", 
+    category: "Beverages", 
+    subcategory: "Soft Drinks", 
+    price: 1500, 
+    rating: 4, 
+    stock: 50, 
+    image: "/assets/fanta.jpg", 
+    description: "A popular carbonated soft drink." 
+  },
+  { 
+    id: 2, 
+    name: "Mountain Dew", 
+    category: "Beverages", 
+    subcategory: "Soft Drinks", 
+    price: 1500, 
+    rating: 5, 
+    stock: 30, 
+    image: "/assets/dew.jpg", 
+    description: "Citrusy and refreshing soft drink." 
+  },
+  { 
+    id: 3, 
+    name: "AFIA JUICE Tropical", 
+    category: "Beverages", 
+    subcategory: "Juices", 
+    price: 2000, 
+    rating: 4, 
+    stock: 20, 
+    image: "/assets/afia_tropical.jpg", 
+    description: "Tropical fruit juice." 
+  },
+  { 
+    id: 4, 
+    name: "Heineken Beer 330ml", 
+    category: "Beverages", 
+    subcategory: "Alcoholic", 
+    price: 5000, 
+    rating: 5, 
+    stock: 60, 
+    image: "/assets/heineken.png", 
+    description: "Premium lager beer." 
+  },
+  { 
+    id: 5, 
+    name: "Bell Lager", 
+    category: "Beverages", 
+    subcategory: "Alcoholic", 
+    price: 4500, 
+    rating: 4, 
+    stock: 40, 
+    image: "/assets/bell.png", 
+    description: "Popular beer in Uganda." 
+  },
+  
+  // Groceries
+  { 
+    id: 6, 
+    name: "Golden Penny Semovita 2kg", 
+    category: "Groceries", 
+    subcategory: "Flour & Grains", 
+    price: 3500, 
+    rating: 4, 
+    stock: 30, 
+    image: "/assets/semo.jpeg", 
+    description: "Premium quality semovita." 
+  },
+  { 
+    id: 7, 
+    name: "Hima Cement 50kg", 
+    category: "Groceries", 
+    subcategory: "Building Materials", 
+    price: 45000, 
+    rating: 4, 
+    stock: 15, 
+    image: "/assets/hima.png", 
+    description: "High quality construction cement." 
+  },
+  
+  // Household
+  { 
+    id: 8, 
+    name: "Luxury Toilet Paper (12 rolls)", 
+    category: "Household", 
+    subcategory: "Bathroom", 
+    price: 12000, 
+    rating: 5, 
+    stock: 25, 
+    image: "/assets/1.jpg", 
+    description: "Premium quality toilet paper." 
+  },
+  { 
+    id: 9, 
+    name: "OMO Detergent 5kg", 
+    category: "Household", 
+    subcategory: "Cleaning", 
+    price: 15000, 
+    rating: 4, 
+    stock: 18, 
+    image: "/assets/omo.jpg", 
+    description: "Powerful laundry detergent." 
+  },
+  
+  // Electronics
+  { 
+    id: 10, 
+    name: "Samsung Galaxy A14", 
+    category: "Electronics", 
+    subcategory: "Mobile Phones", 
+    price: 850000, 
+    rating: 4, 
+    stock: 8, 
+    image: "/assets/samsung.jpg", 
+    description: "Latest smartphone with great features." 
+  },
+  { 
+    id: 11, 
+    name: "Tecno Spark 10", 
+    category: "Electronics", 
+    subcategory: "Mobile Phones", 
+    price: 750000, 
+    rating: 4, 
+    stock: 12, 
+    image: "/assets/spark.jpg", 
+    description: "Affordable smartphone with good camera." 
+  },
+  
+  // Clothing & Accessories
+  { 
+    id: 12, 
+    name: "Men's Casual Shirt", 
+    category: "Clothing", 
+    subcategory: "Men's Fashion", 
+    price: 35000, 
+    rating: 4, 
+    stock: 20, 
+    image: "/assets/casual.jpg", 
+    description: "Comfortable cotton shirt for men." 
+  },
+  { 
+    id: 13, 
+    name: "Women's Handbag", 
+    category: "Clothing", 
+    subcategory: "Women's Fashion", 
+    price: 45000, 
+    rating: 5, 
+    stock: 15, 
+    image: "/assets/handbag.jpg", 
+    description: "Handbag." 
+  },
+  
+  // Health & Beauty
+  { 
+    id: 14, 
+    name: "Dove Body Wash", 
+    category: "Health & Beauty", 
+    subcategory: "Personal Care", 
+    price: 12000, 
+    rating: 4, 
+    stock: 25, 
+    image: "/assets/dove.jpeg", 
+    description: "Moisturizing body wash." 
+  },
+  { 
+    id: 15, 
+    name: "Colgate Toothpaste", 
+    category: "Health & Beauty", 
+    subcategory: "Oral Care", 
+    price: 5000, 
+    rating: 5, 
+    stock: 40, 
+    image: "/assets/colgate.jpg", 
+    description: "Cavity protection toothpaste." 
+  }
 ];
+
+// Category and subcategory mapping
+const categoryMap = {
+  "Beverages": ["Soft Drinks", "Juices", "Alcoholic", "Energy Drinks", "Water"],
+  "Groceries": ["Flour & Grains", "Cooking Oil", "Rice & Pasta", "Building Materials", "Canned Goods"],
+  "Household": ["Cleaning", "Bathroom", "Kitchen", "Laundry", "Storage"],
+  
+  "Clothing": ["Men's Fashion", "Women's Fashion", "Kids", "Jewelry", "Watches"],
+  "Health & Beauty": ["Personal Care", "Oral Care", "Hair Care", "Makeup", "Fragrances"],
+  "Electronics": ["Mobile Phones", "Laptops", "TVs", "Audio", "Accessories"],
+};
 
 const SalesPage = () => {
   const [cart, setCart] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState(productData);
   const [category, setCategory] = useState("");
+  const [subcategory, setSubcategory] = useState("");
   const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(10000);
+  const [maxPrice, setMaxPrice] = useState(100000);
   const [rating, setRating] = useState(0);
   const [searchText, setSearchText] = useState("");
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [openCartDialog, setOpenCartDialog] = useState(false);
 
-  const navigate = useNavigate(); // useNavigate hook to programmatically navigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     applyFilters();
-  }, [category, minPrice, maxPrice, rating, searchText]);
+  }, [category, subcategory, minPrice, maxPrice, rating, searchText]);
 
-  const handleCategoryChange = (e) => setCategory(e.target.value);
+  const handleCategoryChange = (e) => {
+    setCategory(e.target.value);
+    setSubcategory(""); // Reset subcategory when category changes
+  };
+
+  const handleSubcategoryChange = (e) => setSubcategory(e.target.value);
 
   const handlePriceChange = (e, newValue) => {
     setMinPrice(newValue[0]);
@@ -89,13 +274,13 @@ const SalesPage = () => {
   const handleProceedToCheckout = () => {
     setSnackbarMessage("Proceeding to checkout...");
     setOpenSnackbar(true);
-    // Navigate to payments page
-    navigate('/pos/payments', { state: { cartItems: cart } }); // Pass cart items to payments page
+    navigate('/pos/payments', { state: { cartItems: cart } });
   };
 
   const applyFilters = () => {
     const filtered = productData
       .filter((product) => (category ? product.category === category : true))
+      .filter((product) => (subcategory ? product.subcategory === subcategory : true))
       .filter((product) => product.price >= minPrice && product.price <= maxPrice)
       .filter((product) => (rating ? product.rating >= rating : true))
       .filter((product) => product.name.toLowerCase().includes(searchText.toLowerCase()));
@@ -151,32 +336,49 @@ const SalesPage = () => {
             />
           </Grid>
 
-          <Grid item xs={12} sm={3}>
+          <Grid item xs={12} sm={2}>
             <FormControl fullWidth>
               <InputLabel>Category</InputLabel>
               <Select value={category} onChange={handleCategoryChange} label="Category">
-                <MenuItem value="">All</MenuItem>
-                <MenuItem value="Soft Drink">Soft Drink</MenuItem>
-                <MenuItem value="Juice">Juice</MenuItem>
-                <MenuItem value="Alcoholic Beverage">Alcoholic Beverage</MenuItem>
-                <MenuItem value="Dessert">Dessert</MenuItem>
+                <MenuItem value="">All Categories</MenuItem>
+                {Object.keys(categoryMap).map((cat) => (
+                  <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} sm={2}>
+            <FormControl fullWidth>
+              <InputLabel>Subcategory</InputLabel>
+              <Select 
+                value={subcategory} 
+                onChange={handleSubcategoryChange} 
+                label="Subcategory"
+                disabled={!category}
+              >
+                <MenuItem value="">All Subcategories</MenuItem>
+                {category && categoryMap[category]?.map((subcat) => (
+                  <MenuItem key={subcat} value={subcat}>{subcat}</MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Grid>
 
           <Grid item xs={12} sm={3}>
-            <Typography variant="body1">Price Range</Typography>
+            <Typography variant="body1">Price Range (UGX)</Typography>
             <Slider
               value={[minPrice, maxPrice]}
               onChange={handlePriceChange}
               valueLabelDisplay="auto"
               min={0}
-              max={10000}
-              valueLabelFormat={(value) => `UGX ${value}`}
+              max={100000}
+              step={1000}
+              valueLabelFormat={(value) => `${value.toLocaleString()}`}
             />
           </Grid>
 
-          <Grid item xs={12} sm={3}>
+          <Grid item xs={12} sm={2}>
             <Typography variant="body1">Rating</Typography>
             <Rating
               value={rating}
@@ -202,46 +404,60 @@ const SalesPage = () => {
 
       {/* Product Grid */}
       <Grid container spacing={2}>
-        {filteredProducts.map((product) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-            <Card sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-              <CardMedia
-                component="img"
-                image={product.image}
-                alt={product.name}
-                sx={{ height: 200, objectFit: "contain" }}
-              />
-              <CardContent>
-                <Typography variant="h6">{product.name}</Typography>
-                <Typography variant="body2" color="textSecondary">{product.description}</Typography>
-                <Typography variant="body1" color="textPrimary">
-                  UGX {product.price}
-                </Typography>
-                <Rating value={product.rating} precision={0.5} readOnly />
-              </CardContent>
-              <Button
-                variant="contained"
-                color="primary"
-                disabled={product.stock === 0}
-                onClick={() => handleAddToCart(product)}
-              >
-                {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
-              </Button>
-            </Card>
+        {filteredProducts.length > 0 ? (
+          filteredProducts.map((product) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+              <Card sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                <CardMedia
+                  component="img"
+                  image={product.image}
+                  alt={product.name}
+                  sx={{ height: 200, objectFit: "contain" }}
+                />
+                <CardContent>
+                  <Typography variant="h6">{product.name}</Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    {product.category} &gt; {product.subcategory}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">{product.description}</Typography>
+                  <Typography variant="body1" color="textPrimary">
+                    UGX {product.price.toLocaleString()}
+                  </Typography>
+                  <Rating value={product.rating} precision={0.5} readOnly />
+                </CardContent>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  disabled={product.stock === 0}
+                  onClick={() => handleAddToCart(product)}
+                >
+                  {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+                </Button>
+              </Card>
+            </Grid>
+          ))
+        ) : (
+          <Grid item xs={12}>
+            <Typography variant="h6" align="center">
+              No products found matching your criteria
+            </Typography>
           </Grid>
-        ))}
+        )}
       </Grid>
 
       {/* Cart Dialog */}
       <Dialog open={openCartDialog} onClose={() => setOpenCartDialog(false)}>
         <DialogTitle>Shopping Cart</DialogTitle>
         <DialogContent>
-          <Typography variant="h6">Total Amount: UGX {totalCartAmount}</Typography>
+          <Typography variant="h6">Total Amount: UGX {totalCartAmount.toLocaleString()}</Typography>
           <Grid container spacing={2}>
             {cart.map((item) => (
               <Grid item xs={12} key={item.id}>
-                <Box display="flex" justifyContent="space-between">
-                  <Typography variant="body1">{item.name} x {item.quantity}</Typography>
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Box>
+                    <Typography variant="body1">{item.name} x {item.quantity}</Typography>
+                    <Typography variant="body2">UGX {(item.price * item.quantity).toLocaleString()}</Typography>
+                  </Box>
                   <IconButton onClick={() => handleRemoveFromCart(item.id)} color="secondary">
                     <ShoppingCartIcon />
                   </IconButton>
@@ -254,7 +470,11 @@ const SalesPage = () => {
           <Button onClick={() => setOpenCartDialog(false)} color="secondary">
             Close
           </Button>
-          <Button onClick={handleProceedToCheckout} color="primary">
+          <Button 
+            onClick={handleProceedToCheckout} 
+            color="primary"
+            disabled={cart.length === 0}
+          >
             Checkout
           </Button>
         </DialogActions>

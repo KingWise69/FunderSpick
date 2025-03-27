@@ -64,8 +64,7 @@ const POSSidebar = () => {
             <Item title="Inventory" to="/pos/inventory" icon={<StorageIcon />} selected={selected} setSelected={setSelected} />
             <Item title="Payments" to="/pos/payments" icon={<PaymentIcon />} selected={selected} setSelected={setSelected} />
             <Item title="Customers" to="/pos/customers" icon={<PeopleOutlineIcon />} selected={selected} setSelected={setSelected} />
-            <Item title="Reports" to="/pos/reports" icon={<AssessmentIcon />} selected={selected} setSelected={setSelected} />
-            <Item title="Settings" to="/pos/settings" icon={<SettingsIcon />} selected={selected} setSelected={setSelected} />
+            
           </SubMenu>
         </Menu>
       </ProSidebar>

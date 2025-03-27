@@ -58,6 +58,7 @@ import Reports from "./scenes/HRM/reports";
 import Timestamp from "./scenes/HRM/timestamp";
 
 // POS
+import Pos_Dashboard from "./scenes/pos/dashboard";
 import New_Sales from "./scenes/pos/new_sales";
 import Favorites from "./scenes/pos/fav";
 import Beverages from "./scenes/pos/beverages";
@@ -187,6 +188,7 @@ function App() {
               <Route path="/HRM/timestamp" element={<Timestamp />} />
 
               {/* POS */}
+              <Route path="/pos/dashboard" element={<Pos_Dashboard />} />
               <Route path="/pos/new_sales" element={<New_Sales />} />
               <Route path="/pos/fav" element={<Favorites />} />
               <Route path="/pos/beverages" element={<Beverages />} />
