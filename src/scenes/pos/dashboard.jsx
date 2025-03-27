@@ -11,127 +11,174 @@ import {
   InputLabel,
   FormControl,
   Divider,
-  IconButton,
-  Badge,
-  Avatar,
-  useTheme
+  useTheme,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip
 } from '@mui/material';
 import {
-  ShoppingCart,
-  PointOfSale,
-  Receipt,
-  Payment,
+  AccountBalance,
   AttachMoney,
   TrendingUp,
-  Inventory,
-  People,
-  Settings,
-  Notifications,
-  Menu as MenuIcon,
-  Search,
-  FilterList,
-  Refresh,
+  TrendingDown,
+  Receipt,
+  Payment,
   DateRange,
   Today,
-  CalendarViewWeek,
   CalendarViewMonth,
-  Star,
+  Refresh,
+  FilterList,
   Add,
-  MoreVert
+  ShowChart,
+  PieChart,
+  Assessment,
+  AccountBalanceWallet,
+  CreditCard,
+  Savings,
+  RequestQuote,
+  MoneyOff
 } from '@mui/icons-material';
 import { DataGrid } from '@mui/x-data-grid';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { tokens } from '../../theme';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 
-const POSDashboard = () => {
+// Mock data generation functions
+const generateFinancialData = (timeFilter) => {
+  const data = [];
+  const today = new Date();
+  const periods = {
+    daily: 30,
+    weekly: 12,
+    monthly: 12,
+    yearly: 5
+  }[timeFilter];
+
+  const multipliers = {
+    daily: 1,
+    weekly: 7,
+    monthly: 30,
+    yearly: 365
+  }[timeFilter];
+
+  for (let i = periods - 1; i >= 0; i--) {
+    const baseDate = new Date(today);
+    let dateLabel = '';
+    
+    if (timeFilter === 'daily') {
+      baseDate.setDate(baseDate.getDate() - i);
+      dateLabel = baseDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    } else if (timeFilter === 'weekly') {
+      baseDate.setDate(baseDate.getDate() - i * 7);
+      dateLabel = `Week ${i + 1}`;
+    } else if (timeFilter === 'monthly') {
+      baseDate.setMonth(baseDate.getMonth() - i);
+      dateLabel = baseDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    } else {
+      baseDate.setFullYear(baseDate.getFullYear() - i);
+      dateLabel = baseDate.toLocaleDateString('en-US', { year: 'numeric' });
+    }
+
+    const revenue = Math.floor(Math.random() * 10000 * multipliers) + 5000 * multipliers;
+    const expenses = Math.floor(Math.random() * 6000 * multipliers) + 3000 * multipliers;
+    const profit = revenue - expenses;
+    const cashFlow = profit + Math.floor(Math.random() * 2000 * multipliers) - 1000 * multipliers;
+
+    data.push({
+      date: dateLabel,
+      revenue,
+      expenses,
+      profit,
+      cashFlow,
+      accountsReceivable: Math.floor(Math.random() * 8000 * multipliers),
+      accountsPayable: Math.floor(Math.random() * 5000 * multipliers)
+    });
+  }
+
+  return data;
+};
+
+const generateAccountBalances = () => {
+  return [
+    { name: 'Operating Account', balance: 125430.87, type: 'bank' },
+    { name: 'Savings Account', balance: 250000.00, type: 'bank' },
+    { name: 'Credit Card', balance: -8432.50, type: 'credit' },
+    { name: 'Payroll Account', balance: 45320.00, type: 'bank' },
+    { name: 'Investment Account', balance: 175000.00, type: 'investment' }
+  ];
+};
+
+const generateRecentTransactions = () => {
+  const categories = ['Revenue', 'Expense', 'Transfer', 'Investment'];
+  const statuses = ['Cleared', 'Pending', 'Reconciled'];
+  return Array.from({ length: 10 }, (_, i) => ({
+    id: i + 1,
+    date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+    description: `Transaction ${i + 1}`,
+    category: categories[Math.floor(Math.random() * categories.length)],
+    amount: (Math.random() * 5000 * (Math.random() > 0.5 ? 1 : -1)).toFixed(2),
+    account: `Account ${Math.floor(Math.random() * 5) + 1}`,
+    status: statuses[Math.floor(Math.random() * statuses.length)]
+  }));
+};
+
+const generateBudgetData = () => {
+  return [
+    { name: 'Revenue', actual: 125000, budget: 120000 },
+    { name: 'COGS', actual: 45000, budget: 40000 },
+    { name: 'Payroll', actual: 35000, budget: 38000 },
+    { name: 'Marketing', actual: 12000, budget: 15000 },
+    { name: 'Operations', actual: 18000, budget: 20000 },
+    { name: 'R&D', actual: 8000, budget: 10000 }
+  ];
+};
+
+const FinancialDashboard = () => {
   const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
-  const [timeFilter, setTimeFilter] = useState('daily');
-  const [salesData, setSalesData] = useState([]);
-  const [topProducts, setTopProducts] = useState([]);
+  const [timeFilter, setTimeFilter] = useState('monthly');
+  const [financialData, setFinancialData] = useState([]);
+  const [accountBalances, setAccountBalances] = useState([]);
   const [recentTransactions, setRecentTransactions] = useState([]);
-  const [inventoryAlerts, setInventoryAlerts] = useState([]);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [budgetData, setBudgetData] = useState([]);
+  const [chartView, setChartView] = useState('profit');
+  const [activeTab, setActiveTab] = useState('overview');
 
-  // Mock data generation
+  // Generate mock data based on time filter
   useEffect(() => {
-    // Generate sales data for last 30 days
-    const generateSalesData = () => {
-      const data = [];
-      const today = new Date();
-      for (let i = 29; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        data.push({
-          date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          sales: Math.floor(Math.random() * 10000) + 2000,
-          returns: Math.floor(Math.random() * 1000),
-          customers: Math.floor(Math.random() * 50) + 20,
-        });
-      }
-      return data;
-    };
-
-    // Generate top products
-    const generateTopProducts = () => {
-      const categories = ['Electronics', 'Clothing', 'Groceries', 'Home Goods', 'Toys'];
-      return categories.map((category, index) => ({
-        id: index + 1,
-        name: `Product ${index + 1}`,
-        category,
-        sales: Math.floor(Math.random() * 500) + 100,
-        revenue: Math.floor(Math.random() * 10000) + 2000,
-        rating: (Math.random() * 2 + 3).toFixed(1)
-      }));
-    };
-
-    // Generate recent transactions
-    const generateRecentTransactions = () => {
-      const statuses = ['Completed', 'Pending', 'Refunded'];
-      const methods = ['Cash', 'Credit Card', 'Mobile Payment'];
-      return Array.from({ length: 10 }, (_, i) => ({
-        id: i + 1,
-        customer: `Customer ${i + 1}`,
-        amount: (Math.random() * 500 + 50).toFixed(2),
-        items: Math.floor(Math.random() * 10) + 1,
-        date: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-        status: statuses[Math.floor(Math.random() * statuses.length)],
-        method: methods[Math.floor(Math.random() * methods.length)]
-      }));
-    };
-
-    // Generate inventory alerts
-    const generateInventoryAlerts = () => {
-      return Array.from({ length: 5 }, (_, i) => ({
-        id: i + 1,
-        product: `Product ${i + 1}`,
-        currentStock: Math.floor(Math.random() * 10),
-        threshold: 15,
-        category: ['Electronics', 'Clothing', 'Groceries'][Math.floor(Math.random() * 3)]
-      })).filter(item => item.currentStock < item.threshold);
-    };
-
-    setSalesData(generateSalesData());
-    setTopProducts(generateTopProducts());
+    setFinancialData(generateFinancialData(timeFilter));
+    setAccountBalances(generateAccountBalances());
     setRecentTransactions(generateRecentTransactions());
-    setInventoryAlerts(generateInventoryAlerts());
-  }, []);
+    setBudgetData(generateBudgetData());
+  }, [timeFilter]);
 
-  // Calculate summary metrics based on time filter
+  // Calculate summary metrics
   const calculateSummary = () => {
-    const multiplier = {
-      daily: 1,
-      weekly: 7,
-      monthly: 30,
-      yearly: 365
-    }[timeFilter];
-
+    const latest = financialData[financialData.length - 1] || {};
+    const previous = financialData[financialData.length - 2] || {};
+    
     return {
-      totalSales: (salesData.reduce((sum, day) => sum + day.sales, 0) / 30 * multiplier).toFixed(2),
-      totalPurchases: (salesData.reduce((sum, day) => sum + day.sales * 0.6, 0) / 30 * multiplier).toFixed(2),
-      purchaseDue: (Math.random() * 5000 + 1000).toFixed(2),
-      invoiceDue: (Math.random() * 8000 + 2000).toFixed(2),
-      expenses: (salesData.reduce((sum, day) => sum + day.sales * 0.3, 0) / 30 * multiplier).toFixed(2)
+      totalAssets: accountBalances.reduce((sum, acc) => sum + Math.max(0, acc.balance), 0),
+      totalLiabilities: accountBalances.reduce((sum, acc) => sum + Math.min(0, acc.balance), 0),
+      netWorth: accountBalances.reduce((sum, acc) => sum + acc.balance, 0),
+      revenue: latest.revenue || 0,
+      revenueChange: latest.revenue && previous.revenue 
+        ? ((latest.revenue - previous.revenue) / previous.revenue * 100).toFixed(1)
+        : 0,
+      expenses: latest.expenses || 0,
+      expensesChange: latest.expenses && previous.expenses
+        ? ((latest.expenses - previous.expenses) / previous.expenses * 100).toFixed(1)
+        : 0,
+      profit: latest.profit || 0,
+      profitChange: latest.profit && previous.profit
+        ? ((latest.profit - previous.profit) / previous.profit * 100).toFixed(1)
+        : 0,
+      cashFlow: latest.cashFlow || 0,
+      cashFlowChange: latest.cashFlow && previous.cashFlow
+        ? ((latest.cashFlow - previous.cashFlow) / previous.cashFlow * 100).toFixed(1)
+        : 0
     };
   };
 
@@ -140,48 +187,58 @@ const POSDashboard = () => {
   // Columns for recent transactions table
   const transactionColumns = [
     { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'customer', headerName: 'Customer', width: 150 },
-    { field: 'amount', headerName: 'Amount', width: 120 },
-    { field: 'items', headerName: 'Items', width: 100 },
-    { field: 'date', headerName: 'Date', width: 120 },
-    { field: 'status', headerName: 'Status', width: 120,
+    { field: 'date', headerName: 'Date', width: 100 },
+    { field: 'description', headerName: 'Description', width: 200 },
+    { field: 'category', headerName: 'Category', width: 120 },
+    { field: 'amount', headerName: 'Amount', width: 120,
       renderCell: (params) => (
-        <Box
-          sx={{
-            backgroundColor: params.value === 'Completed' ? colors.greenAccent[500] :
-                          params.value === 'Pending' ? colors.blueAccent[500] :
-                          colors.redAccent[500],
-            color: 'white',
-            padding: '2px 8px',
-            borderRadius: '4px',
-            fontSize: '0.75rem'
-          }}
-        >
-          {params.value}
-        </Box>
+        <Typography color={params.value >= 0 ? theme.palette.success.main : theme.palette.error.main}>
+          ${Math.abs(params.value).toLocaleString()}
+        </Typography>
       )
     },
-    { field: 'method', headerName: 'Method', width: 130 }
+    { field: 'account', headerName: 'Account', width: 120 },
+    { field: 'status', headerName: 'Status', width: 120,
+      renderCell: (params) => (
+        <Chip
+          label={params.value}
+          size="small"
+          color={
+            params.value === 'Cleared' ? 'success' :
+            params.value === 'Pending' ? 'warning' : 'info'
+          }
+        />
+      )
+    }
   ];
+
+  // Data for pie charts
+  const expenseCategories = [
+    { name: 'Payroll', value: 35000 },
+    { name: 'Marketing', value: 12000 },
+    { name: 'Operations', value: 18000 },
+    { name: 'R&D', value: 8000 },
+    { name: 'Other', value: 5000 }
+  ];
+
+  const revenueCategories = [
+    { name: 'Product Sales', value: 85000 },
+    { name: 'Services', value: 25000 },
+    { name: 'Subscriptions', value: 15000 }
+  ];
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   return (
     <Box m="20px">
       {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <Box mb={3}>
         <Typography variant="h3" fontWeight="bold">
-          Point of Sale Dashboard
+          Financial Management Dashboard
         </Typography>
-        <Box display="flex" alignItems="center" gap={2}>
-          <IconButton>
-            <Badge badgeContent={4} color="error">
-              <Notifications />
-            </Badge>
-          </IconButton>
-          <IconButton>
-            <Settings />
-          </IconButton>
-          <Avatar sx={{ backgroundColor: colors.blueAccent[500] }}>OP</Avatar>
-        </Box>
+        <Typography variant="subtitle1" color="textSecondary">
+          Overview of your company's financial health
+        </Typography>
       </Box>
 
       {/* Time Filter */}
@@ -196,7 +253,7 @@ const POSDashboard = () => {
           </Button>
           <Button
             variant={timeFilter === 'weekly' ? 'contained' : 'outlined'}
-            startIcon={<CalendarViewWeek />}
+            startIcon={<DateRange />}
             onClick={() => setTimeFilter('weekly')}
           >
             Weekly
@@ -217,7 +274,7 @@ const POSDashboard = () => {
           </Button>
         </Box>
         <Box display="flex" gap={1}>
-          <Button variant="outlined" startIcon={<Refresh />}>
+          <Button variant="outlined" startIcon={<Refresh />} onClick={() => window.location.reload()}>
             Refresh
           </Button>
           <Button variant="outlined" startIcon={<FilterList />}>
@@ -226,93 +283,138 @@ const POSDashboard = () => {
         </Box>
       </Box>
 
+      {/* Navigation Tabs */}
+      <Box mb={3}>
+        <Paper sx={{ display: 'flex', overflow: 'auto' }}>
+          <Button 
+            variant={activeTab === 'overview' ? 'contained' : 'text'} 
+            onClick={() => setActiveTab('overview')}
+            startIcon={<Assessment />}
+          >
+            Overview
+          </Button>
+          <Button 
+            variant={activeTab === 'cashflow' ? 'contained' : 'text'} 
+            onClick={() => setActiveTab('cashflow')}
+            startIcon={<ShowChart />}
+          >
+            Cash Flow
+          </Button>
+          <Button 
+            variant={activeTab === 'profitability' ? 'contained' : 'text'} 
+            onClick={() => setActiveTab('profitability')}
+            startIcon={<AttachMoney />}
+          >
+            Profitability
+          </Button>
+          <Button 
+            variant={activeTab === 'balances' ? 'contained' : 'text'} 
+            onClick={() => setActiveTab('balances')}
+            startIcon={<AccountBalance />}
+          >
+            Balances
+          </Button>
+          <Button 
+            variant={activeTab === 'budget' ? 'contained' : 'text'} 
+            onClick={() => setActiveTab('budget')}
+            startIcon={<PieChart />}
+          >
+            Budget
+          </Button>
+        </Paper>
+      </Box>
+
       {/* Summary Cards */}
       <Grid container spacing={3} mb={3}>
-        <Grid item xs={12} sm={6} md={4} lg={2.4}>
-          <Card sx={{ backgroundColor: colors.primary[400] }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
             <CardContent>
-              <Typography variant="h6" color="textSecondary" gutterBottom>
-                Total Sales
-              </Typography>
+              <Box display="flex" alignItems="center" mb={1}>
+                <AccountBalanceWallet color="primary" sx={{ mr: 1 }} />
+                <Typography variant="h6" color="textSecondary">Net Worth</Typography>
+              </Box>
               <Typography variant="h4" fontWeight="bold">
-                ${summary.totalSales}
+                ${summary.netWorth.toLocaleString()}
               </Typography>
               <Box display="flex" alignItems="center" mt={1}>
-                <TrendingUp sx={{ color: colors.greenAccent[500], mr: 1 }} />
-                <Typography variant="body2" color={colors.greenAccent[500]}>
-                  +12% from last {timeFilter}
+                {summary.netWorth >= 0 ? (
+                  <TrendingUp sx={{ color: '#4caf50', mr: 1 }} />
+                ) : (
+                  <TrendingDown sx={{ color: '#f44336', mr: 1 }} />
+                )}
+                <Typography variant="body2" color={summary.netWorth >= 0 ? '#4caf50' : '#f44336'}>
+                  {summary.netWorth >= 0 ? '+' : ''}
+                  {((summary.netWorth - accountBalances.reduce((sum, acc) => sum + acc.balance * 0.9, 0)) / 
+                    Math.abs(accountBalances.reduce((sum, acc) => sum + acc.balance * 0.9, 0)) * 100).toFixed(1)}% from last period
                 </Typography>
               </Box>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={4} lg={2.4}>
-          <Card sx={{ backgroundColor: colors.primary[400] }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
             <CardContent>
-              <Typography variant="h6" color="textSecondary" gutterBottom>
-                Total Purchases
-              </Typography>
+              <Box display="flex" alignItems="center" mb={1}>
+                <AttachMoney color="primary" sx={{ mr: 1 }} />
+                <Typography variant="h6" color="textSecondary">Revenue</Typography>
+              </Box>
               <Typography variant="h4" fontWeight="bold">
-                ${summary.totalPurchases}
+                ${summary.revenue.toLocaleString()}
               </Typography>
               <Box display="flex" alignItems="center" mt={1}>
-                <TrendingUp sx={{ color: colors.greenAccent[500], mr: 1 }} />
-                <Typography variant="body2" color={colors.greenAccent[500]}>
-                  +8% from last {timeFilter}
+                {summary.revenueChange >= 0 ? (
+                  <TrendingUp sx={{ color: '#4caf50', mr: 1 }} />
+                ) : (
+                  <TrendingDown sx={{ color: '#f44336', mr: 1 }} />
+                )}
+                <Typography variant="body2" color={summary.revenueChange >= 0 ? '#4caf50' : '#f44336'}>
+                  {summary.revenueChange >= 0 ? '+' : ''}{summary.revenueChange}% from last {timeFilter}
                 </Typography>
               </Box>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={4} lg={2.4}>
-          <Card sx={{ backgroundColor: colors.primary[400] }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
             <CardContent>
-              <Typography variant="h6" color="textSecondary" gutterBottom>
-                Purchase Due
-              </Typography>
+              <Box display="flex" alignItems="center" mb={1}>
+                <MoneyOff color="primary" sx={{ mr: 1 }} />
+                <Typography variant="h6" color="textSecondary">Expenses</Typography>
+              </Box>
               <Typography variant="h4" fontWeight="bold">
-                ${summary.purchaseDue}
+                ${summary.expenses.toLocaleString()}
               </Typography>
               <Box display="flex" alignItems="center" mt={1}>
-                <TrendingUp sx={{ color: colors.redAccent[500], mr: 1 }} />
-                <Typography variant="body2" color={colors.redAccent[500]}>
-                  +5% from last {timeFilter}
+                {summary.expensesChange <= 0 ? (
+                  <TrendingUp sx={{ color: '#4caf50', mr: 1 }} />
+                ) : (
+                  <TrendingDown sx={{ color: '#f44336', mr: 1 }} />
+                )}
+                <Typography variant="body2" color={summary.expensesChange <= 0 ? '#4caf50' : '#f44336'}>
+                  {summary.expensesChange >= 0 ? '+' : ''}{summary.expensesChange}% from last {timeFilter}
                 </Typography>
               </Box>
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={4} lg={2.4}>
-          <Card sx={{ backgroundColor: colors.primary[400] }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
             <CardContent>
-              <Typography variant="h6" color="textSecondary" gutterBottom>
-                Invoice Due
-              </Typography>
-              <Typography variant="h4" fontWeight="bold">
-                ${summary.invoiceDue}
-              </Typography>
-              <Box display="flex" alignItems="center" mt={1}>
-                <TrendingUp sx={{ color: colors.greenAccent[500], mr: 1 }} />
-                <Typography variant="body2" color={colors.greenAccent[500]}>
-                  +15% from last {timeFilter}
-                </Typography>
+              <Box display="flex" alignItems="center" mb={1}>
+                <RequestQuote color="primary" sx={{ mr: 1 }} />
+                <Typography variant="h6" color="textSecondary">Profit</Typography>
               </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={4} lg={2.4}>
-          <Card sx={{ backgroundColor: colors.primary[400] }}>
-            <CardContent>
-              <Typography variant="h6" color="textSecondary" gutterBottom>
-                Expenses
-              </Typography>
-              <Typography variant="h4" fontWeight="bold">
-                ${summary.expenses}
+              <Typography variant="h4" fontWeight="bold" color={summary.profit >= 0 ? 'inherit' : 'error'}>
+                ${Math.abs(summary.profit).toLocaleString()}
               </Typography>
               <Box display="flex" alignItems="center" mt={1}>
-                <TrendingUp sx={{ color: colors.redAccent[500], mr: 1 }} />
-                <Typography variant="body2" color={colors.redAccent[500]}>
-                  +3% from last {timeFilter}
+                {summary.profitChange >= 0 ? (
+                  <TrendingUp sx={{ color: '#4caf50', mr: 1 }} />
+                ) : (
+                  <TrendingDown sx={{ color: '#f44336', mr: 1 }} />
+                )}
+                <Typography variant="body2" color={summary.profitChange >= 0 ? '#4caf50' : '#f44336'}>
+                  {summary.profitChange >= 0 ? '+' : ''}{summary.profitChange}% from last {timeFilter}
                 </Typography>
               </Box>
             </CardContent>
@@ -320,83 +422,141 @@ const POSDashboard = () => {
         </Grid>
       </Grid>
 
-      {/* Charts Row */}
-      <Grid container spacing={3} mb={3}>
-        {/* Sales Trend Chart */}
+      {/* Main Content */}
+      <Grid container spacing={3}>
+        {/* Financial Trends Chart */}
         <Grid item xs={12} md={8}>
           <Card sx={{ p: 2, height: '100%' }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="h6">Sales Trend (Last 30 Days)</Typography>
+              <Typography variant="h6">
+                Financial Trends ({timeFilter.charAt(0).toUpperCase() + timeFilter.slice(1)} View)
+              </Typography>
               <FormControl size="small" sx={{ minWidth: 120 }}>
                 <InputLabel>View</InputLabel>
                 <Select
-                  value="sales"
+                  value={chartView}
                   label="View"
-                  onChange={() => {}}
+                  onChange={(e) => setChartView(e.target.value)}
                 >
-                  <MenuItem value="sales">Sales</MenuItem>
-                  <MenuItem value="customers">Customers</MenuItem>
-                  <MenuItem value="returns">Returns</MenuItem>
+                  <MenuItem value="profit">Profit</MenuItem>
+                  <MenuItem value="revenue">Revenue</MenuItem>
+                  <MenuItem value="expenses">Expenses</MenuItem>
+                  <MenuItem value="cashFlow">Cash Flow</MenuItem>
                 </Select>
               </FormControl>
             </Box>
-            <Box height={300}>
+            <Box height={400}>
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={salesData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={colors.grey[700]} />
-                  <XAxis dataKey="date" stroke={colors.grey[100]} />
-                  <YAxis stroke={colors.grey[100]} />
-                  <Tooltip />
+                <LineChart data={financialData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip 
+                    formatter={(value) => [`$${value.toLocaleString()}`, chartView.charAt(0).toUpperCase() + chartView.slice(1)]}
+                  />
                   <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="sales"
-                    stroke={colors.blueAccent[500]}
-                    activeDot={{ r: 8 }}
-                    name="Sales ($)"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="customers"
-                    stroke={colors.greenAccent[500]}
-                    name="Customers"
-                  />
+                  {chartView === 'profit' && (
+                    <Line
+                      type="monotone"
+                      dataKey="profit"
+                      stroke={theme.palette.primary.main}
+                      activeDot={{ r: 8 }}
+                      name="Profit ($)"
+                    />
+                  )}
+                  {chartView === 'revenue' && (
+                    <Line
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#4caf50"
+                      name="Revenue ($)"
+                    />
+                  )}
+                  {chartView === 'expenses' && (
+                    <Line
+                      type="monotone"
+                      dataKey="expenses"
+                      stroke="#f44336"
+                      name="Expenses ($)"
+                    />
+                  )}
+                  {chartView === 'cashFlow' && (
+                    <Line
+                      type="monotone"
+                      dataKey="cashFlow"
+                      stroke="#ff9800"
+                      name="Cash Flow ($)"
+                    />
+                  )}
                 </LineChart>
               </ResponsiveContainer>
             </Box>
           </Card>
         </Grid>
 
-        {/* Top Products Chart */}
+        {/* Account Balances */}
         <Grid item xs={12} md={4}>
           <Card sx={{ p: 2, height: '100%' }}>
-            <Typography variant="h6" mb={2}>Top Selling Products</Typography>
-            <Box height={300}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={topProducts.slice(0, 5)}
-                  layout="vertical"
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke={colors.grey[700]} />
-                  <XAxis type="number" stroke={colors.grey[100]} />
-                  <YAxis dataKey="name" type="category" width={80} stroke={colors.grey[100]} />
-                  <Tooltip />
-                  <Bar dataKey="sales" fill={colors.blueAccent[500]} name="Sales (units)" />
-                </BarChart>
-              </ResponsiveContainer>
+            <Typography variant="h6" mb={2}>Account Balances</Typography>
+            <Box mb={3}>
+              {accountBalances.map((account) => (
+                <Box key={account.name} mb={2}>
+                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <Box display="flex" alignItems="center">
+                      {account.type === 'bank' && <AccountBalanceWallet color="primary" sx={{ mr: 1 }} />}
+                      {account.type === 'credit' && <CreditCard color="error" sx={{ mr: 1 }} />}
+                      {account.type === 'investment' && <Savings color="success" sx={{ mr: 1 }} />}
+                      <Typography fontWeight="bold">{account.name}</Typography>
+                    </Box>
+                    <Typography color={account.balance >= 0 ? 'inherit' : 'error'}>
+                      ${Math.abs(account.balance).toLocaleString()}
+                    </Typography>
+                  </Box>
+                  <Divider sx={{ mt: 1 }} />
+                </Box>
+              ))}
+            </Box>
+            <Box>
+              <Typography variant="subtitle1" mb={1}>Quick Summary</Typography>
+              <TableContainer component={Paper} variant="outlined">
+                <Table size="small">
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>Total Assets</TableCell>
+                      <TableCell align="right">${summary.totalAssets.toLocaleString()}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Total Liabilities</TableCell>
+                      <TableCell align="right">(${Math.abs(summary.totalLiabilities).toLocaleString()})</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell><strong>Net Worth</strong></TableCell>
+                      <TableCell align="right">
+                        <strong>${summary.netWorth.toLocaleString()}</strong>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </Box>
           </Card>
         </Grid>
       </Grid>
 
       {/* Bottom Row */}
-      <Grid container spacing={3}>
+      <Grid container spacing={3} mt={0}>
         {/* Recent Transactions */}
         <Grid item xs={12} md={8}>
           <Card sx={{ p: 2 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
               <Typography variant="h6">Recent Transactions</Typography>
-              <Button size="small" startIcon={<Add />}>New Sale</Button>
+              <Button 
+                size="small" 
+                startIcon={<Add />}
+                href="/transactions/new"
+              >
+                Add Transaction
+              </Button>
             </Box>
             <Box sx={{ height: 400 }}>
               <DataGrid
@@ -404,91 +564,118 @@ const POSDashboard = () => {
                 columns={transactionColumns}
                 pageSize={5}
                 rowsPerPageOptions={[5]}
-                sx={{
-                  '& .MuiDataGrid-root': {
-                    border: 'none',
-                  },
-                  '& .MuiDataGrid-cell': {
-                    borderBottom: 'none',
-                  },
-                  '& .MuiDataGrid-columnHeaders': {
-                    backgroundColor: colors.blueAccent[700],
-                    borderBottom: 'none',
-                  },
-                  '& .MuiDataGrid-virtualScroller': {
-                    backgroundColor: colors.primary[400],
-                  },
-                  '& .MuiDataGrid-footerContainer': {
-                    borderTop: 'none',
-                    backgroundColor: colors.blueAccent[700],
-                  },
-                }}
               />
             </Box>
           </Card>
         </Grid>
 
-        {/* Right Sidebar */}
+        {/* Financial Ratios and Budget */}
         <Grid item xs={12} md={4}>
-          {/* Inventory Alerts */}
           <Card sx={{ p: 2, mb: 3 }}>
-            <Typography variant="h6" mb={2}>Inventory Alerts</Typography>
-            {inventoryAlerts.length > 0 ? (
-              inventoryAlerts.map((item) => (
-                <Box key={item.id} mb={2}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography fontWeight="bold">{item.product}</Typography>
-                    <Typography color={colors.redAccent[500]}>
-                      {item.currentStock} / {item.threshold}
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" color="textSecondary">{item.category}</Typography>
-                  <Box display="flex" justifyContent="flex-end" mt={1}>
-                    <Button size="small" variant="outlined">Reorder</Button>
-                  </Box>
-                  <Divider sx={{ mt: 1 }} />
-                </Box>
-              ))
-            ) : (
-              <Typography color="textSecondary">No inventory alerts</Typography>
-            )}
+            <Typography variant="h6" mb={2}>Budget vs Actual</Typography>
+            <Box height={200}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={budgetData}
+                  layout="vertical"
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" />
+                  <YAxis dataKey="name" type="category" />
+                  <Tooltip 
+                    formatter={(value) => [`$${value.toLocaleString()}`]}
+                  />
+                  <Legend />
+                  <Bar dataKey="actual" fill="#8884d8" name="Actual" />
+                  <Bar dataKey="budget" fill="#82ca9d" name="Budget" />
+                </BarChart>
+              </ResponsiveContainer>
+            </Box>
           </Card>
 
-          {/* Quick Actions */}
           <Card sx={{ p: 2 }}>
-            <Typography variant="h6" mb={2}>Quick Actions</Typography>
-            <Grid container spacing={1}>
-              <Grid item xs={6}>
-                <Button fullWidth variant="contained" startIcon={<PointOfSale />} sx={{ mb: 1 }}>
-                  New Sale
-                </Button>
-              </Grid>
-              <Grid item xs={6}>
-                <Button fullWidth variant="contained" startIcon={<ShoppingCart />} sx={{ mb: 1 }}>
-                  New Order
-                </Button>
-              </Grid>
-              <Grid item xs={6}>
-                <Button fullWidth variant="contained" startIcon={<Receipt />} sx={{ mb: 1 }}>
-                  Invoices
-                </Button>
-              </Grid>
-              <Grid item xs={6}>
-                <Button fullWidth variant="contained" startIcon={<Payment />} sx={{ mb: 1 }}>
-                  Payments
-                </Button>
-              </Grid>
-              <Grid item xs={6}>
-                <Button fullWidth variant="contained" startIcon={<Inventory />}>
-                  Inventory
-                </Button>
-              </Grid>
-              <Grid item xs={6}>
-                <Button fullWidth variant="contained" startIcon={<People />}>
-                  Customers
-                </Button>
-              </Grid>
-            </Grid>
+            <Typography variant="h6" mb={2}>Financial Ratios</Typography>
+            <TableContainer component={Paper} variant="outlined">
+              <Table size="small">
+                <TableBody>
+                  <TableRow>
+                    <TableCell>Current Ratio</TableCell>
+                    <TableCell align="right">{(summary.totalAssets / Math.abs(summary.totalLiabilities)).toFixed(2)}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Profit Margin</TableCell>
+                    <TableCell align="right">{(summary.profit / summary.revenue * 100).toFixed(1)}%</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Operating Margin</TableCell>
+                    <TableCell align="right">{((summary.profit + 15000) / summary.revenue * 100).toFixed(1)}%</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>ROI</TableCell>
+                    <TableCell align="right">{(summary.profit / summary.netWorth * 100).toFixed(1)}%</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Additional Financial Charts */}
+      <Grid container spacing={3} mt={0}>
+        <Grid item xs={12} md={6}>
+          <Card sx={{ p: 2 }}>
+            <Typography variant="h6" mb={2}>Expense Breakdown</Typography>
+            <Box height={300}>
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsPieChart>
+                  <Pie
+                    data={expenseCategories}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    nameKey="name"
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {expenseCategories.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => [`$${value.toLocaleString()}`]} />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </Box>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Card sx={{ p: 2 }}>
+            <Typography variant="h6" mb={2}>Revenue Breakdown</Typography>
+            <Box height={300}>
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsPieChart>
+                  <Pie
+                    data={revenueCategories}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    nameKey="name"
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {revenueCategories.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => [`$${value.toLocaleString()}`]} />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </Box>
           </Card>
         </Grid>
       </Grid>
@@ -496,4 +683,4 @@ const POSDashboard = () => {
   );
 };
 
-export default POSDashboard;
+export default FinancialDashboard;

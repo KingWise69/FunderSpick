@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Topbar from "./scenes/global/Topbar";
 import Sidebar from "./scenes/global/Sidebar";
@@ -78,7 +78,12 @@ import Customer_Group from "./scenes/pos/customer_groups";
 import User_Pos from "./scenes/pos/user";
 import Roles from "./scenes/pos/roles";
 import User_Sales from "./scenes/pos/sales";
-import User_Contact from "./scenes/pos/contact";
+import User_Contact from "./scenes/pos/contacts";
+import Import_Contact from "./scenes/pos/import_contacts";
+import Add from "./scenes/pos/Add";
+import list_p from "./scenes/pos/list";
+import Returns from "./scenes/pos/returns";
+
 
 // User
 import New_Sale from "./scenes/user/new_sales";
@@ -96,23 +101,47 @@ import Manage_Payment from "./scenes/user/payments";
 import Manage_Customer from "./scenes/user/customers";
 import Manage_Report from "./scenes/user/reports";
 
-
 // Login
 import Login from "./scenes/login/SignUp";
 
 function App() {
   const [theme, colorMode] = useMode();
   const [isSidebar, setIsSidebar] = useState(true);
-  const [userRole, setUserRole] = useState(null); // 'admin' or 'normal'
+  const [userRole, setUserRole] = useState(localStorage.getItem('userRole') || null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user was logged in before refresh
+    const savedRole = localStorage.getItem('userRole');
+    if (savedRole) {
+      setUserRole(savedRole);
+      // Redirect to appropriate page based on role
+      if (savedRole === "admin") {
+        if (window.location.pathname === "/") {
+          navigate("/dashboard");
+        }
+      } else if (savedRole === "normal") {
+        if (window.location.pathname === "/") {
+          navigate("/user/new_sales");
+        }
+      }
+    }
+  }, [navigate]);
 
   const handleLogin = (role) => {
     setUserRole(role);
+    localStorage.setItem('userRole', role);
     if (role === "admin") {
       navigate("/dashboard");
     } else if (role === "normal") {
       navigate("/user/new_sales");
     }
+  };
+
+  const handleLogout = () => {
+    setUserRole(null);
+    localStorage.removeItem('userRole');
+    navigate("/");
   };
 
   return (
@@ -126,7 +155,7 @@ function App() {
 
           <main className="content">
             {/* Render Topbar only if user is logged in */}
-            {userRole && <Topbar setIsSidebar={setIsSidebar} />}
+            {userRole && <Topbar setIsSidebar={setIsSidebar} onLogout={handleLogout} />}
 
             <Routes>
               {/* Default route to Login */}
@@ -208,7 +237,12 @@ function App() {
               <Route path="/pos/user" element={<User_Pos />} />
               <Route path="/pos/roles" element={<Roles />} />
               <Route path="/pos/sales" element={<User_Sales />} />
-              <Route path="/pos/contact" element={<User_Contact />} />
+              <Route path="/pos/contacts" element={<User_Contact />} />
+              <Route path="/pos/import_contacts" element={<Import_Contact />} />
+              <Route path="/pos/add" element={<Add />} />
+              <Route path="/pos/list" element={<list_p />} />
+              <Route path="/pos/returns" element={<Returns />} />
+
 
               {/* User Routes */}
               <Route path="/user/new_sales" element={<New_Sale />} />

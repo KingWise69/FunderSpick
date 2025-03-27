@@ -359,7 +359,7 @@ const ProductsPage = () => {
     <Box sx={{ padding: 3 }}>
       {/* Page Title and Actions */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Product Inventory</Typography>
+        <Typography variant="h4">Product Page</Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button
             variant="contained"

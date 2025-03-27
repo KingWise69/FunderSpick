@@ -99,15 +99,25 @@ const Sidebar = () => {
             </SubMenu>
 
             <SubMenu title="Contacts" icon={<PersonAddIcon />}>
+            <Item title="Contacts" to="/pos/contacts" icon={<PeopleOutlineIcon />} selected={selected} setSelected={setSelected} />
+            <Item title="Import Contacts" to="/pos/import_contacts" icon={<PeopleOutlineIcon />} selected={selected} setSelected={setSelected} />
               
               <Item title="Customers" to="/pos/customers" icon={<PeopleOutlineIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Customer Groups" to="/pos/customer_groups" icon={<GroupAddIcon />} selected={selected} setSelected={setSelected} />
               
+              
             </SubMenu>
+            <SubMenu title="Purchases" icon={<PeopleOutlinedIcon />}>
+              <Item title="Add Purchase" to="/pos/add" icon={<PersonAddIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="List Purchase" to="/pos/list" icon={<PeopleOutlineIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Purchase Returns" to="/pos/returns" icon={<GroupAddIcon />} selected={selected} setSelected={setSelected} />
+              
+            </SubMenu>
+            
 
   <Item title="Manage Sales" to="/pos/manage" icon={<TimelineIcon />} selected={selected} setSelected={setSelected} />
   <Item title="Products" to="/pos/products" icon={<InventoryIcon />} selected={selected} setSelected={setSelected} />
-  <Item title="Inventory" to="/pos/inventory" icon={<StorageIcon />} selected={selected} setSelected={setSelected} />
+ 
   <Item title="Payments" to="/pos/payments" icon={<PaymentIcon />} selected={selected} setSelected={setSelected} />
   
   <Item title="Reports" to="/pos/reports" icon={<AssessmentIcon />} selected={selected} setSelected={setSelected} />
@@ -117,6 +127,8 @@ const Sidebar = () => {
           
 
           <SubMenu title="Financial Management" icon={<AccountBalanceOutlinedIcon />}>
+          <Item title="Dashboard" to="/pos/dashboard" icon={<HomeOutlinedIcon />} selected={selected} setSelected={setSelected} />
+          
             <SubMenu title="Sales" icon={<MonetizationOnOutlinedIcon />}>
 
             
