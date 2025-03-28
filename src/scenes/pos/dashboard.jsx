@@ -334,7 +334,7 @@ const FinancialDashboard = () => {
                 <Typography variant="h6" color="textSecondary">Net Worth</Typography>
               </Box>
               <Typography variant="h4" fontWeight="bold">
-                ${summary.netWorth.toLocaleString()}
+                UGX{summary.netWorth.toLocaleString()}
               </Typography>
               <Box display="flex" alignItems="center" mt={1}>
                 {summary.netWorth >= 0 ? (
@@ -359,7 +359,7 @@ const FinancialDashboard = () => {
                 <Typography variant="h6" color="textSecondary">Revenue</Typography>
               </Box>
               <Typography variant="h4" fontWeight="bold">
-                ${summary.revenue.toLocaleString()}
+                UGX{summary.revenue.toLocaleString()}
               </Typography>
               <Box display="flex" alignItems="center" mt={1}>
                 {summary.revenueChange >= 0 ? (
@@ -382,7 +382,7 @@ const FinancialDashboard = () => {
                 <Typography variant="h6" color="textSecondary">Expenses</Typography>
               </Box>
               <Typography variant="h4" fontWeight="bold">
-                ${summary.expenses.toLocaleString()}
+                UGX{summary.expenses.toLocaleString()}
               </Typography>
               <Box display="flex" alignItems="center" mt={1}>
                 {summary.expensesChange <= 0 ? (
@@ -405,7 +405,7 @@ const FinancialDashboard = () => {
                 <Typography variant="h6" color="textSecondary">Profit</Typography>
               </Box>
               <Typography variant="h4" fontWeight="bold" color={summary.profit >= 0 ? 'inherit' : 'error'}>
-                ${Math.abs(summary.profit).toLocaleString()}
+                UGX{Math.abs(summary.profit).toLocaleString()}
               </Typography>
               <Box display="flex" alignItems="center" mt={1}>
                 {summary.profitChange >= 0 ? (
@@ -461,7 +461,7 @@ const FinancialDashboard = () => {
                       dataKey="profit"
                       stroke={theme.palette.primary.main}
                       activeDot={{ r: 8 }}
-                      name="Profit ($)"
+                      name="Profit (UGX)"
                     />
                   )}
                   {chartView === 'revenue' && (
@@ -469,7 +469,7 @@ const FinancialDashboard = () => {
                       type="monotone"
                       dataKey="revenue"
                       stroke="#4caf50"
-                      name="Revenue ($)"
+                      name="Revenue (UGX)"
                     />
                   )}
                   {chartView === 'expenses' && (
@@ -477,7 +477,7 @@ const FinancialDashboard = () => {
                       type="monotone"
                       dataKey="expenses"
                       stroke="#f44336"
-                      name="Expenses ($)"
+                      name="Expenses (UGX)"
                     />
                   )}
                   {chartView === 'cashFlow' && (
@@ -485,7 +485,7 @@ const FinancialDashboard = () => {
                       type="monotone"
                       dataKey="cashFlow"
                       stroke="#ff9800"
-                      name="Cash Flow ($)"
+                      name="Cash Flow (UGX)"
                     />
                   )}
                 </LineChart>
@@ -523,16 +523,16 @@ const FinancialDashboard = () => {
                   <TableBody>
                     <TableRow>
                       <TableCell>Total Assets</TableCell>
-                      <TableCell align="right">${summary.totalAssets.toLocaleString()}</TableCell>
+                      <TableCell align="right">UGX{summary.totalAssets.toLocaleString()}</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell>Total Liabilities</TableCell>
-                      <TableCell align="right">(${Math.abs(summary.totalLiabilities).toLocaleString()})</TableCell>
+                      <TableCell align="right">(UGX{Math.abs(summary.totalLiabilities).toLocaleString()})</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell><strong>Net Worth</strong></TableCell>
                       <TableCell align="right">
-                        <strong>${summary.netWorth.toLocaleString()}</strong>
+                        <strong>UGX{summary.netWorth.toLocaleString()}</strong>
                       </TableCell>
                     </TableRow>
                   </TableBody>

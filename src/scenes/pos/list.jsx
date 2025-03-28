@@ -151,7 +151,7 @@ const ListPurchasesPage = () => {
         <Button
           variant="contained"
           startIcon={<Add />}
-          href="/purchases/add"
+          href="/pos/add"
         >
           New Purchase
         </Button>

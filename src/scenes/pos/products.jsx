@@ -26,8 +26,8 @@ import {
   Tabs,
   Tab,
   Badge,
-  Tooltip,
-  Avatar
+  Avatar,
+  Stack
 } from "@mui/material";
 import {
   Favorite,
@@ -38,7 +38,8 @@ import {
   ExpandLess,
   Search,
   FilterList,
-  Sort
+  Sort,
+  Inventory as InventoryIcon
 } from "@mui/icons-material";
 
 // Category structure with subcategories
@@ -155,7 +156,7 @@ const initialProductData = [
     subcategory: "Building Materials", 
     price: 45000, 
     rating: 4, 
-    stock: 58, 
+    stock: 5, 
     image: "/assets/hima.png", 
     description: "High quality construction cement.",
     barcode: "192087321"
@@ -183,7 +184,9 @@ const ProductsPage = () => {
     rating: 0, 
     stock: "", 
     description: "",
-    barcode: ""
+    barcode: "",
+    image: null,
+    imagePreview: ""
   });
   const [newCategory, setNewCategory] = useState({
     name: "",
@@ -197,6 +200,13 @@ const ProductsPage = () => {
   // Apply filters whenever filter criteria change
   useEffect(() => {
     let filtered = [...products];
+    
+    // Apply tab-specific filters
+    if (activeTab === 1) { // Favorites tab
+      filtered = filtered.filter(product => favorites.some(fav => fav.id === product.id));
+    } else if (activeTab === 2) { // Low stock tab
+      filtered = filtered.filter(product => product.stock < 10);
+    }
     
     // Category filter
     if (category) {
@@ -229,7 +239,7 @@ const ProductsPage = () => {
     }
     
     setFilteredProducts(filtered);
-  }, [products, category, subcategory, minPrice, maxPrice, rating, searchTerm]);
+  }, [products, category, subcategory, minPrice, maxPrice, rating, searchTerm, activeTab, favorites]);
 
   // Toggle category expansion
   const toggleCategory = (categoryName) => {
@@ -270,13 +280,31 @@ const ProductsPage = () => {
       rating: 0, 
       stock: "", 
       description: "",
-      barcode: ""
+      barcode: "",
+      image: null,
+      imagePreview: ""
     });
     setNewCategory({
       name: "",
       subcategories: []
     });
     setNewSubcategory("");
+  };
+
+  // Handle image upload for new product
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewProduct({
+          ...newProduct,
+          image: file,
+          imagePreview: reader.result
+        });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   // Add a new product
@@ -286,7 +314,8 @@ const ProductsPage = () => {
       id: products.length + 1,
       price: Number(newProduct.price),
       stock: Number(newProduct.stock),
-      rating: Number(newProduct.rating)
+      rating: Number(newProduct.rating),
+      image: newProduct.imagePreview || "/assets/default-product.png"
     };
     setProducts([...products, newProductWithId]);
     handleDialogClose();
@@ -359,7 +388,7 @@ const ProductsPage = () => {
     <Box sx={{ padding: 3 }}>
       {/* Page Title and Actions */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Product Page</Typography>
+        <Typography variant="h4">Product Management</Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button
             variant="contained"
@@ -543,9 +572,32 @@ const ProductsPage = () => {
 
         {/* Product Grid */}
         <Grid item xs={12} md={9}>
-          <Grid container spacing={2}>
-            {filteredProducts.length > 0 ? (
-              filteredProducts.map((product) => (
+          {activeTab === 1 && favorites.length === 0 ? (
+            <Paper sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="h6">You haven't added any favorites yet</Typography>
+              <Button 
+                variant="outlined" 
+                sx={{ mt: 2 }}
+                onClick={() => setActiveTab(0)}
+              >
+                Browse Products
+              </Button>
+            </Paper>
+          ) : activeTab === 2 && filteredProducts.length === 0 ? (
+            <Paper sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="h6">No low stock items</Typography>
+              <Button 
+                variant="contained" 
+                startIcon={<InventoryIcon />}
+                sx={{ mt: 2 }}
+                href="/inventory/overview"
+              >
+                Check Inventory
+              </Button>
+            </Paper>
+          ) : filteredProducts.length > 0 ? (
+            <Grid container spacing={2}>
+              {filteredProducts.map((product) => (
                 <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
                   <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                     <CardMedia
@@ -607,29 +659,27 @@ const ProductsPage = () => {
                     </CardActions>
                   </Card>
                 </Grid>
-              ))
-            ) : (
-              <Grid item xs={12}>
-                <Paper sx={{ p: 4, textAlign: 'center' }}>
-                  <Typography variant="h6">No products found matching your criteria</Typography>
-                  <Button 
-                    variant="outlined" 
-                    sx={{ mt: 2 }}
-                    onClick={() => {
-                      setCategory("");
-                      setSubcategory("");
-                      setSearchTerm("");
-                      setRating(0);
-                      setMinPrice(0);
-                      setMaxPrice(100000);
-                    }}
-                  >
-                    Clear Filters
-                  </Button>
-                </Paper>
-              </Grid>
-            )}
-          </Grid>
+              ))}
+            </Grid>
+          ) : (
+            <Paper sx={{ p: 4, textAlign: 'center' }}>
+              <Typography variant="h6">No products found matching your criteria</Typography>
+              <Button 
+                variant="outlined" 
+                sx={{ mt: 2 }}
+                onClick={() => {
+                  setCategory("");
+                  setSubcategory("");
+                  setSearchTerm("");
+                  setRating(0);
+                  setMinPrice(0);
+                  setMaxPrice(100000);
+                }}
+              >
+                Clear Filters
+              </Button>
+            </Paper>
+          )}
         </Grid>
       </Grid>
 
@@ -781,6 +831,30 @@ const ProductsPage = () => {
                 precision={0.5}
               />
             </Grid>
+            <Grid item xs={12}>
+              <Typography variant="body2" gutterBottom>Product Image</Typography>
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="product-image-upload"
+                type="file"
+                onChange={handleImageUpload}
+              />
+              <label htmlFor="product-image-upload">
+                <Button variant="outlined" component="span" fullWidth>
+                  Upload Image
+                </Button>
+              </label>
+              {newProduct.imagePreview && (
+                <Box sx={{ mt: 2, textAlign: 'center' }}>
+                  <img 
+                    src={newProduct.imagePreview} 
+                    alt="Preview" 
+                    style={{ maxHeight: 200, maxWidth: '100%' }}
+                  />
+                </Box>
+              )}
+            </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
@@ -788,6 +862,7 @@ const ProductsPage = () => {
           <Button 
             variant="contained" 
             onClick={handleAddProduct}
+            disabled={!newProduct.name || !newProduct.category}
             sx={{ backgroundColor: "purple", color: "white" }}
           >
             Save Product

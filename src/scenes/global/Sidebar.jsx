@@ -155,9 +155,16 @@ const Sidebar = () => {
               <Item title="Create Bill" to="/bills/create" icon={<CreateOutlinedIcon />} selected={selected} setSelected={setSelected} />
             </SubMenu>
             <SubMenu title="Reports" icon={<AssessmentOutlinedIcon />}>
+            <Item title="Income" to="/reports/income" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Expense" to="/reports/expense" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Income vs Expenses" to="/reports/income-vs-expenses" icon={<PaymentIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Trial Balance" to="/reports/trial-balance" icon={<BalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Transactions" to="/reports/transaction" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Profit & Loss" to="/reports/profit-and-loss" icon={<BalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Trial Balance" to="/reports/trial-balance" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Account Balance" to="/reports/account-Balance" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Balance Sheet" to="/reports/balance-sheet" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              
+              
             </SubMenu>
           </SubMenu>
 

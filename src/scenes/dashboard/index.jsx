@@ -260,7 +260,7 @@ const POSDashboard = () => {
                 Total Sales
               </Typography>
               <Typography variant="h4" fontWeight="bold">
-                ${summary.totalSales}
+                UGX{summary.totalSales}
               </Typography>
               <Box display="flex" alignItems="center" mt={1}>
                 <TrendingUp sx={{ color: '#4caf50', mr: 1 }} />
@@ -278,7 +278,7 @@ const POSDashboard = () => {
                 Total Purchases
               </Typography>
               <Typography variant="h4" fontWeight="bold">
-                ${summary.totalPurchases}
+                UGX{summary.totalPurchases}
               </Typography>
               <Box display="flex" alignItems="center" mt={1}>
                 <TrendingUp sx={{ color: '#4caf50', mr: 1 }} />
@@ -296,7 +296,7 @@ const POSDashboard = () => {
                 Purchase Due
               </Typography>
               <Typography variant="h4" fontWeight="bold">
-                ${summary.purchaseDue}
+                UGX{summary.purchaseDue}
               </Typography>
               <Box display="flex" alignItems="center" mt={1}>
                 <TrendingUp sx={{ color: '#f44336', mr: 1 }} />
@@ -314,7 +314,7 @@ const POSDashboard = () => {
                 Invoice Due
               </Typography>
               <Typography variant="h4" fontWeight="bold">
-                ${summary.invoiceDue}
+                UGX{summary.invoiceDue}
               </Typography>
               <Box display="flex" alignItems="center" mt={1}>
                 <TrendingUp sx={{ color: '#4caf50', mr: 1 }} />
@@ -332,7 +332,7 @@ const POSDashboard = () => {
                 Expenses
               </Typography>
               <Typography variant="h4" fontWeight="bold">
-                ${summary.expenses}
+                UGX{summary.expenses}
               </Typography>
               <Box display="flex" alignItems="center" mt={1}>
                 <TrendingUp sx={{ color: '#f44336', mr: 1 }} />

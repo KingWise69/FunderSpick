@@ -256,7 +256,7 @@ const ManageSalesPage = () => {
   return (
     <Box sx={{ padding: 3 }}>
       <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
-        Sales Management Dashboard
+        Manage Sales
       </Typography>
 
       {/* Time period selector */}

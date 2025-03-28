@@ -22,9 +22,12 @@ import { ColorModeContext, useMode } from "./theme";
 import Calendar from "./scenes/calendar/calendar";
 
 // Reports
+import Income from "./scenes/reports/income";
+import Expense from "./scenes/reports/expense";
 import IncomeVsExpenses from "./scenes/reports/income-vs-expenses";
 import TrialBalance from "./scenes/reports/trial-balance";
 import BalanceSheet from "./scenes/reports/balance-sheet";
+import Transaction from "./scenes/reports/transaction";
 import AccountBalance from "./scenes/reports/account-balance";
 import ProfitAndLoss from "./scenes/reports/profit-and-loss";
 
@@ -177,11 +180,14 @@ function App() {
               <Route path="/geography" element={<Geography />} />
 
               {/* Reports */}
+              <Route path="/reports/income" element={<Income />} />
+              <Route path="/reports/expense" element={<Expense />} />
               <Route path="/reports/income-vs-expenses" element={<IncomeVsExpenses />} />
               <Route path="/reports/trial-balance" element={<TrialBalance />} />
               <Route path="/reports/balance-sheet" element={<BalanceSheet />} />
               <Route path="/reports/account-balance" element={<AccountBalance />} />
               <Route path="/reports/profit-and-loss" element={<ProfitAndLoss />} />
+              <Route path="/reports/transaction" element={<Transaction />} />
 
               {/* Bills */}
               <Route path="/bills/manage" element={<ManageBill />} />
