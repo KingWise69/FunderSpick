@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import Topbar from "./scenes/global/Topbar";
 import Sidebar from "./scenes/global/Sidebar";
 import Pos_Sidebar from "./scenes/global/Pos_Sidebar";
@@ -87,7 +87,6 @@ import Add from "./scenes/pos/Add";
 import List_p from "./scenes/pos/list";
 import Returns from "./scenes/pos/returns";
 
-
 // User
 import New_Sale from "./scenes/user/new_sales";
 import Fav from "./scenes/user/fav";
@@ -118,15 +117,10 @@ function App() {
     const savedRole = localStorage.getItem('userRole');
     if (savedRole) {
       setUserRole(savedRole);
-      // Redirect to appropriate page based on role
-      if (savedRole === "admin") {
-        if (window.location.pathname === "/") {
-          navigate("/dashboard");
-        }
-      } else if (savedRole === "normal") {
-        if (window.location.pathname === "/") {
-          navigate("/user/new_sales");
-        }
+    } else {
+      // If no user role is found, ensure we're at the login page
+      if (window.location.pathname !== "/") {
+        navigate("/");
       }
     }
   }, [navigate]);
@@ -147,6 +141,17 @@ function App() {
     navigate("/");
   };
 
+  // Protected Route component
+  const ProtectedRoute = ({ children, allowedRoles }) => {
+    if (!userRole) {
+      return <Navigate to="/" replace />;
+    }
+    if (allowedRoles && !allowedRoles.includes(userRole)) {
+      return <Navigate to={userRole === "admin" ? "/dashboard" : "/user/new_sales"} replace />;
+    }
+    return children;
+  };
+
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
@@ -165,106 +170,432 @@ function App() {
               <Route path="/" element={<Login onLogin={handleLogin} />} />
 
               {/* Admin Routes */}
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/team" element={<Team />} />
-              <Route path="/payment" element={<Payment />} />
-              <Route path="/contacts" element={<Contacts />} />
-              <Route path="/invoices" element={<Invoices />} />
-              <Route path="/payment-listings" element={<Listings />} />
-              <Route path="/form" element={<Form />} />
-              <Route path="/bar" element={<Bar />} />
-              <Route path="/pie" element={<Pie />} />
-              <Route path="/line" element={<Line />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="/calendar" element={<Calendar />} />
-              <Route path="/geography" element={<Geography />} />
+              <Route path="/dashboard" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/team" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Team />
+                </ProtectedRoute>
+              } />
+              <Route path="/payment" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Payment />
+                </ProtectedRoute>
+              } />
+              <Route path="/contacts" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Contacts />
+                </ProtectedRoute>
+              } />
+              <Route path="/invoices" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Invoices />
+                </ProtectedRoute>
+              } />
+              <Route path="/payment-listings" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Listings />
+                </ProtectedRoute>
+              } />
+              <Route path="/form" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Form />
+                </ProtectedRoute>
+              } />
+              <Route path="/bar" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Bar />
+                </ProtectedRoute>
+              } />
+              <Route path="/pie" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Pie />
+                </ProtectedRoute>
+              } />
+              <Route path="/line" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Line />
+                </ProtectedRoute>
+              } />
+              <Route path="/faq" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <FAQ />
+                </ProtectedRoute>
+              } />
+              <Route path="/calendar" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Calendar />
+                </ProtectedRoute>
+              } />
+              <Route path="/geography" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Geography />
+                </ProtectedRoute>
+              } />
 
               {/* Reports */}
-              <Route path="/reports/income" element={<Income />} />
-              <Route path="/reports/expense" element={<Expense />} />
-              <Route path="/reports/income-vs-expenses" element={<IncomeVsExpenses />} />
-              <Route path="/reports/trial-balance" element={<TrialBalance />} />
-              <Route path="/reports/balance-sheet" element={<BalanceSheet />} />
-              <Route path="/reports/account-balance" element={<AccountBalance />} />
-              <Route path="/reports/profit-and-loss" element={<ProfitAndLoss />} />
-              <Route path="/reports/transaction" element={<Transaction />} />
+              <Route path="/reports/income" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Income />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports/expense" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Expense />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports/income-vs-expenses" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <IncomeVsExpenses />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports/trial-balance" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <TrialBalance />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports/balance-sheet" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <BalanceSheet />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports/account-balance" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AccountBalance />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports/profit-and-loss" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProfitAndLoss />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports/transaction" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Transaction />
+                </ProtectedRoute>
+              } />
 
               {/* Bills */}
-              <Route path="/bills/manage" element={<ManageBill />} />
-              <Route path="/bills/create" element={<CreateBill />} />
+              <Route path="/bills/manage" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <ManageBill />
+                </ProtectedRoute>
+              } />
+              <Route path="/bills/create" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <CreateBill />
+                </ProtectedRoute>
+              } />
 
               {/* Inventory */}
-              <Route path="/inventory/overview" element={<Inventory />} />
-              <Route path="/inventory/product-list" element={<ProductList />} />
-              <Route path="/inventory/print-bar-code" element={<Barcode />} />
-              <Route path="/inventory/stock" element={<Stock />} />
-              <Route path="/inventory/supplierList" element={<Supply />} />
-              <Route path="/inventory/transfer" element={<Transfer />} />
-              <Route path="/inventory/customer" element={<CustomerList />} />
+              <Route path="/inventory/overview" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Inventory />
+                </ProtectedRoute>
+              } />
+              <Route path="/inventory/product-list" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <ProductList />
+                </ProtectedRoute>
+              } />
+              <Route path="/inventory/print-bar-code" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Barcode />
+                </ProtectedRoute>
+              } />
+              <Route path="/inventory/stock" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Stock />
+                </ProtectedRoute>
+              } />
+              <Route path="/inventory/supplierList" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Supply />
+                </ProtectedRoute>
+              } />
+              <Route path="/inventory/transfer" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Transfer />
+                </ProtectedRoute>
+              } />
+              <Route path="/inventory/customer" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <CustomerList />
+                </ProtectedRoute>
+              } />
 
               {/* Ledger */}
-              <Route path="/ledger/list" element={<LedgerList />} />
-              <Route path="/ledger/create" element={<LedgerCreate />} />
+              <Route path="/ledger/list" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <LedgerList />
+                </ProtectedRoute>
+              } />
+              <Route path="/ledger/create" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <LedgerCreate />
+                </ProtectedRoute>
+              } />
 
               {/* Vouchers */}
-              <Route path="/vouchers/credit" element={<CreditVoucher />} />
-              <Route path="/vouchers/debit" element={<DebitVoucher />} />
-              <Route path="/vouchers/create" element={<CreateVoucher />} />
+              <Route path="/vouchers/credit" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <CreditVoucher />
+                </ProtectedRoute>
+              } />
+              <Route path="/vouchers/debit" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <DebitVoucher />
+                </ProtectedRoute>
+              } />
+              <Route path="/vouchers/create" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <CreateVoucher />
+                </ProtectedRoute>
+              } />
 
               {/* CRM */}
-              <Route path="/CRM/leads" element={<Leads />} />
-              <Route path="/CRM/deals" element={<Deals />} />
-              <Route path="/CRM/analytics" element={<Analytics />} />
+              <Route path="/CRM/leads" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Leads />
+                </ProtectedRoute>
+              } />
+              <Route path="/CRM/deals" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Deals />
+                </ProtectedRoute>
+              } />
+              <Route path="/CRM/analytics" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Analytics />
+                </ProtectedRoute>
+              } />
 
               {/* HRM */}
-              <Route path="/HRM/list" element={<List />} />
-              <Route path="/HRM/payroll" element={<Payroll />} />
-              <Route path="/HRM/reports" element={<Reports />} />
-              <Route path="/HRM/timestamp" element={<Timestamp />} />
+              <Route path="/HRM/list" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <List />
+                </ProtectedRoute>
+              } />
+              <Route path="/HRM/payroll" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Payroll />
+                </ProtectedRoute>
+              } />
+              <Route path="/HRM/reports" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Reports />
+                </ProtectedRoute>
+              } />
+              <Route path="/HRM/timestamp" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Timestamp />
+                </ProtectedRoute>
+              } />
 
               {/* POS */}
-              <Route path="/pos/dashboard" element={<Pos_Dashboard />} />
-              <Route path="/pos/new_sales" element={<New_Sales />} />
-              <Route path="/pos/fav" element={<Favorites />} />
-              <Route path="/pos/beverages" element={<Beverages />} />
-              <Route path="/pos/dessert" element={<Dessert />} />
-              <Route path="/pos/hold" element={<Hold />} />
-              <Route path="/pos/dis" element={<Dis />} />
-              <Route path="/pos/refund" element={<Refund />} />
-              <Route path="/pos/stock" element={<Movement />} />
-              <Route path="/pos/products" element={<Products />} />
-              <Route path="/pos/manage" element={<Manage_Sales />} />
-              <Route path="/pos/inventory" element={<Inventory_Manage />} />
-              <Route path="/pos/payments" element={<Manage_Payments />} />
-              <Route path="/pos/customers" element={<Manage_Customers />} />
-              <Route path="/pos/reports" element={<Manage_Reports />} />
-              <Route path="/pos/settings" element={<Manage_Settings />} />
-              <Route path="/pos/customer_groups" element={<Customer_Group />} />
-              <Route path="/pos/user" element={<User_Pos />} />
-              <Route path="/pos/roles" element={<Roles />} />
-              <Route path="/pos/sales" element={<User_Sales />} />
-              <Route path="/pos/contacts" element={<User_Contact />} />
-              <Route path="/pos/import_contacts" element={<Import_Contact />} />
-              <Route path="/pos/add" element={<Add />} />
-              <Route path="/pos/list" element={<List_p />} />
-              <Route path="/pos/returns" element={<Returns />} />
-
+              <Route path="/pos/dashboard" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Pos_Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/new_sales" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <New_Sales />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/fav" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Favorites />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/beverages" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Beverages />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/dessert" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Dessert />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/hold" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Hold />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/dis" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Dis />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/refund" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Refund />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/stock" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Movement />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/products" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Products />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/manage" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Manage_Sales />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/inventory" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Inventory_Manage />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/payments" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Manage_Payments />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/customers" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Manage_Customers />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/reports" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Manage_Reports />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/settings" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Manage_Settings />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/customer_groups" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Customer_Group />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/user" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <User_Pos />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/roles" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Roles />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/sales" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <User_Sales />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/contacts" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <User_Contact />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/import_contacts" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Import_Contact />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/add" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Add />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/list" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <List_p />
+                </ProtectedRoute>
+              } />
+              <Route path="/pos/returns" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Returns />
+                </ProtectedRoute>
+              } />
 
               {/* User Routes */}
-              <Route path="/user/new_sales" element={<New_Sale />} />
-              <Route path="/user/fav" element={<Fav />} />
-              <Route path="/user/beverages" element={<Beverage />} />
-              <Route path="/user/dessert" element={<Desserts />} />
-              <Route path="/user/hold" element={<Holds />} />
-              <Route path="/user/dis" element={<Discounted />} />
-              <Route path="/user/refund" element={<Refunds />} />
-              <Route path="/user/stock" element={<Movements />} />
-              <Route path="/user/products" element={<Product />} />
-              <Route path="/user/manage" element={<Manage_Sale />} />
-              <Route path="/user/inventory" element={<Inventory_Manages />} />
-              <Route path="/user/payments" element={<Manage_Payment />} />
-              <Route path="/user/customers" element={<Manage_Customer />} />
-              <Route path="/user/reports" element={<Manage_Report />} />
+              <Route path="/user/new_sales" element={
+                <ProtectedRoute allowedRoles={["normal"]}>
+                  <New_Sale />
+                </ProtectedRoute>
+              } />
+              <Route path="/user/fav" element={
+                <ProtectedRoute allowedRoles={["normal"]}>
+                  <Fav />
+                </ProtectedRoute>
+              } />
+              <Route path="/user/beverages" element={
+                <ProtectedRoute allowedRoles={["normal"]}>
+                  <Beverage />
+                </ProtectedRoute>
+              } />
+              <Route path="/user/dessert" element={
+                <ProtectedRoute allowedRoles={["normal"]}>
+                  <Desserts />
+                </ProtectedRoute>
+              } />
+              <Route path="/user/hold" element={
+                <ProtectedRoute allowedRoles={["normal"]}>
+                  <Holds />
+                </ProtectedRoute>
+              } />
+              <Route path="/user/dis" element={
+                <ProtectedRoute allowedRoles={["normal"]}>
+                  <Discounted />
+                </ProtectedRoute>
+              } />
+              <Route path="/user/refund" element={
+                <ProtectedRoute allowedRoles={["normal"]}>
+                  <Refunds />
+                </ProtectedRoute>
+              } />
+              <Route path="/user/stock" element={
+                <ProtectedRoute allowedRoles={["normal"]}>
+                  <Movements />
+                </ProtectedRoute>
+              } />
+              <Route path="/user/products" element={
+                <ProtectedRoute allowedRoles={["normal"]}>
+                  <Product />
+                </ProtectedRoute>
+              } />
+              <Route path="/user/manage" element={
+                <ProtectedRoute allowedRoles={["normal"]}>
+                  <Manage_Sale />
+                </ProtectedRoute>
+              } />
+              <Route path="/user/inventory" element={
+                <ProtectedRoute allowedRoles={["normal"]}>
+                  <Inventory_Manages />
+                </ProtectedRoute>
+              } />
+              <Route path="/user/payments" element={
+                <ProtectedRoute allowedRoles={["normal"]}>
+                  <Manage_Payment />
+                </ProtectedRoute>
+              } />
+              <Route path="/user/customers" element={
+                <ProtectedRoute allowedRoles={["normal"]}>
+                  <Manage_Customer />
+                </ProtectedRoute>
+              } />
+              <Route path="/user/reports" element={
+                <ProtectedRoute allowedRoles={["normal"]}>
+                  <Manage_Report />
+                </ProtectedRoute>
+              } />
+
+              {/* Catch-all route redirects to login */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
         </div>
