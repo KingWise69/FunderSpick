@@ -27,7 +27,9 @@ import {
   Tab,
   Badge,
   Avatar,
-  Stack
+  Stack,
+  Snackbar,
+  Alert
 } from "@mui/material";
 import {
   Favorite,
@@ -39,7 +41,9 @@ import {
   Search,
   FilterList,
   Sort,
-  Inventory as InventoryIcon
+  Inventory as InventoryIcon,
+  Edit,
+  Close
 } from "@mui/icons-material";
 
 // Category structure with subcategories
@@ -188,6 +192,8 @@ const ProductsPage = () => {
     image: null,
     imagePreview: ""
   });
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingProductId, setEditingProductId] = useState(null);
   const [newCategory, setNewCategory] = useState({
     name: "",
     subcategories: []
@@ -196,6 +202,11 @@ const ProductsPage = () => {
   const [favorites, setFavorites] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState({});
   const [activeTab, setActiveTab] = useState(0);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success"
+  });
 
   // Apply filters whenever filter criteria change
   useEffect(() => {
@@ -253,18 +264,34 @@ const ProductsPage = () => {
   const handleAddToFavorites = (product) => {
     if (!favorites.some((fav) => fav.id === product.id)) {
       setFavorites([...favorites, product]);
+      showSnackbar("Added to favorites", "success");
     }
   };
 
   // Handle removing from favorites
   const handleRemoveFromFavorites = (productId) => {
     setFavorites(favorites.filter((fav) => fav.id !== productId));
+    showSnackbar("Removed from favorites", "info");
   };
 
   // View product details
   const handleViewDetails = (product) => {
     setSelectedProduct(product);
     setOpenProductDialog(true);
+  };
+
+  // Show snackbar notification
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({
+      open: true,
+      message,
+      severity
+    });
+  };
+
+  // Close snackbar
+  const handleCloseSnackbar = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
   };
 
   // Close all dialogs
@@ -284,11 +311,8 @@ const ProductsPage = () => {
       image: null,
       imagePreview: ""
     });
-    setNewCategory({
-      name: "",
-      subcategories: []
-    });
-    setNewSubcategory("");
+    setIsEditing(false);
+    setEditingProductId(null);
   };
 
   // Handle image upload for new product
@@ -318,6 +342,53 @@ const ProductsPage = () => {
       image: newProduct.imagePreview || "/assets/default-product.png"
     };
     setProducts([...products, newProductWithId]);
+    showSnackbar("Product added successfully", "success");
+    handleDialogClose();
+  };
+
+  // Handle opening the edit product dialog
+  const handleEditProduct = (product) => {
+    setSelectedProduct(product);
+    setNewProduct({
+      name: product.name,
+      category: product.category,
+      subcategory: product.subcategory,
+      price: product.price,
+      rating: product.rating,
+      stock: product.stock,
+      description: product.description,
+      barcode: product.barcode,
+      image: null,
+      imagePreview: product.image
+    });
+    setIsEditing(true);
+    setEditingProductId(product.id);
+    setOpenProductDialog(true);
+  };
+
+  // Handle saving edited product
+  const handleSaveEditedProduct = () => {
+    const updatedProducts = products.map(product => {
+      if (product.id === editingProductId) {
+        return {
+          ...product,
+          name: newProduct.name,
+          category: newProduct.category,
+          subcategory: newProduct.subcategory,
+          price: Number(newProduct.price),
+          rating: Number(newProduct.rating),
+          stock: Number(newProduct.stock),
+          description: newProduct.description,
+          barcode: newProduct.barcode,
+          image: newProduct.imagePreview || product.image
+        };
+      }
+      return product;
+    });
+
+    setProducts(updatedProducts);
+    setFilteredProducts(updatedProducts);
+    showSnackbar("Product updated successfully", "success");
     handleDialogClose();
   };
 
@@ -325,14 +396,13 @@ const ProductsPage = () => {
   const handleAddCategory = () => {
     if (newCategory.name && !categoryStructure[newCategory.name]) {
       categoryStructure[newCategory.name] = newCategory.subcategories;
-      
-      // If adding subcategories to an existing category
-      if (newCategory.subcategories.length > 0) {
-        categoryStructure[newCategory.name] = [
-          ...(categoryStructure[newCategory.name] || []),
-          ...newCategory.subcategories
-        ];
-      }
+      showSnackbar("Category added successfully", "success");
+    } else if (newCategory.name && newCategory.subcategories.length > 0) {
+      categoryStructure[newCategory.name] = [
+        ...(categoryStructure[newCategory.name] || []),
+        ...newCategory.subcategories
+      ];
+      showSnackbar("Subcategories added successfully", "success");
     }
     handleDialogClose();
   };
@@ -357,7 +427,8 @@ const ProductsPage = () => {
   };
 
   // Handle sorting
-  const handleSort = (sortValue) => {
+  const handleSort = (e) => {
+    const sortValue = e.target.value;
     let sortedProducts = [...filteredProducts];
     switch (sortValue) {
       case "priceAsc":
@@ -383,6 +454,311 @@ const ProductsPage = () => {
     }
     setFilteredProducts(sortedProducts);
   };
+
+  // Handle subcategory selection from sidebar
+  const handleSubcategorySelect = (subcat) => {
+    setSubcategory(subcat);
+    // Find the category that contains this subcategory
+    const parentCategory = Object.keys(categoryStructure).find(cat => 
+      categoryStructure[cat].includes(subcat)
+    );
+    if (parentCategory) {
+      setCategory(parentCategory);
+    }
+  };
+
+  // Product Details Dialog
+  const ProductDetailsDialog = () => (
+    <Dialog 
+      open={openProductDialog && selectedProduct && !isEditing} 
+      onClose={handleDialogClose}
+      maxWidth="md"
+      fullWidth
+    >
+      <DialogTitle>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          {selectedProduct?.name}
+          <IconButton onClick={handleDialogClose}>
+            <Close />
+          </IconButton>
+        </Box>
+      </DialogTitle>
+      <DialogContent>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <CardMedia
+              component="img"
+              image={selectedProduct?.image}
+              alt={selectedProduct?.name}
+              sx={{ width: '100%', maxHeight: 300, objectFit: 'contain' }}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h5" gutterBottom>{selectedProduct?.name}</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <Rating value={selectedProduct?.rating} precision={0.5} readOnly />
+              <Typography variant="body2" sx={{ ml: 1 }}>{selectedProduct?.rating}/5</Typography>
+            </Box>
+            <Typography variant="body1" paragraph>
+              <strong>Category:</strong> {selectedProduct?.category} › {selectedProduct?.subcategory}
+            </Typography>
+            <Typography variant="h4" color="primary" gutterBottom>
+              UGX {selectedProduct?.price?.toLocaleString()}
+            </Typography>
+            <Typography variant="body1" paragraph>
+              <strong>Stock:</strong> {selectedProduct?.stock} units
+            </Typography>
+            <Typography variant="body1" paragraph>
+              <strong>Barcode:</strong> {selectedProduct?.barcode}
+            </Typography>
+            <Divider sx={{ my: 2 }} />
+            <Typography variant="body1">
+              <strong>Description:</strong> {selectedProduct?.description}
+            </Typography>
+          </Grid>
+        </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleDialogClose}>Close</Button>
+        <Button 
+          variant="contained" 
+          onClick={() => handleEditProduct(selectedProduct)}
+          startIcon={<Edit />}
+          sx={{ backgroundColor: "purple", color: "white" }}
+        >
+          Edit Product
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+
+  // Product Form Dialog (Add/Edit)
+  const ProductFormDialog = () => (
+    <Dialog 
+      open={openProductDialog && (isEditing || !selectedProduct)} 
+      onClose={handleDialogClose}
+      maxWidth="sm"
+      fullWidth
+    >
+      <DialogTitle>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          {isEditing ? "Edit Product" : "Add New Product"}
+          <IconButton onClick={handleDialogClose}>
+            <Close />
+          </IconButton>
+        </Box>
+      </DialogTitle>
+      <DialogContent>
+        <Grid container spacing={2} sx={{ mt: 1 }}>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Product Name"
+              value={newProduct.name}
+              onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <InputLabel>Category</InputLabel>
+              <Select
+                value={newProduct.category}
+                onChange={(e) => setNewProduct({...newProduct, category: e.target.value, subcategory: ""})}
+                label="Category"
+              >
+                <MenuItem value=""><em>Select Category</em></MenuItem>
+                {Object.keys(categoryStructure).map((cat) => (
+                  <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <InputLabel>Subcategory</InputLabel>
+              <Select
+                value={newProduct.subcategory}
+                onChange={(e) => setNewProduct({...newProduct, subcategory: e.target.value})}
+                label="Subcategory"
+                disabled={!newProduct.category}
+              >
+                <MenuItem value=""><em>Select Subcategory</em></MenuItem>
+                {newProduct.category && categoryStructure[newProduct.category]?.map((subcat) => (
+                  <MenuItem key={subcat} value={subcat}>{subcat}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Price (UGX)"
+              type="number"
+              value={newProduct.price}
+              onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Stock Quantity"
+              type="number"
+              value={newProduct.stock}
+              onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Barcode/ID"
+              value={newProduct.barcode}
+              onChange={(e) => setNewProduct({...newProduct, barcode: e.target.value})}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Description"
+              multiline
+              rows={4}
+              value={newProduct.description}
+              onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="body2">Product Rating</Typography>
+            <Rating
+              value={newProduct.rating}
+              onChange={(e, newValue) => setNewProduct({...newProduct, rating: newValue})}
+              precision={0.5}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="body2" gutterBottom>Product Image</Typography>
+            <input
+              accept="image/*"
+              style={{ display: 'none' }}
+              id="product-image-upload"
+              type="file"
+              onChange={handleImageUpload}
+            />
+            <label htmlFor="product-image-upload">
+              <Button variant="outlined" component="span" fullWidth>
+                Upload Image
+              </Button>
+            </label>
+            {newProduct.imagePreview && (
+              <Box sx={{ mt: 2, textAlign: 'center' }}>
+                <img 
+                  src={newProduct.imagePreview} 
+                  alt="Preview" 
+                  style={{ maxHeight: 200, maxWidth: '100%' }}
+                />
+              </Box>
+            )}
+          </Grid>
+        </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleDialogClose}>Cancel</Button>
+        <Button 
+          variant="contained" 
+          onClick={isEditing ? handleSaveEditedProduct : handleAddProduct}
+          disabled={!newProduct.name || !newProduct.category}
+          sx={{ backgroundColor: "purple", color: "white" }}
+        >
+          {isEditing ? "Save Changes" : "Save Product"}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+
+  // Manage Categories Dialog
+  const ManageCategoriesDialog = () => (
+    <Dialog 
+      open={openCategoryDialog} 
+      onClose={handleDialogClose}
+      maxWidth="sm"
+      fullWidth
+    >
+      <DialogTitle>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          Manage Categories
+          <IconButton onClick={handleDialogClose}>
+            <Close />
+          </IconButton>
+        </Box>
+      </DialogTitle>
+      <DialogContent>
+        <Grid container spacing={2} sx={{ mt: 1 }}>
+          <Grid item xs={12}>
+            <Typography variant="h6" gutterBottom>Add New Category</Typography>
+            <TextField
+              fullWidth
+              label="Category Name"
+              value={newCategory.name}
+              onChange={(e) => setNewCategory({...newCategory, name: e.target.value})}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="body1" gutterBottom>Subcategories</Typography>
+            <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+              <TextField
+                fullWidth
+                label="Add Subcategory"
+                value={newSubcategory}
+                onChange={(e) => setNewSubcategory(e.target.value)}
+              />
+              <Button 
+                variant="contained" 
+                onClick={handleAddSubcategory}
+                disabled={!newSubcategory}
+              >
+                Add
+              </Button>
+            </Box>
+            {newCategory.subcategories.length > 0 && (
+              <Paper sx={{ p: 2, mb: 2 }}>
+                {newCategory.subcategories.map((subcat, index) => (
+                  <Chip
+                    key={index}
+                    label={subcat}
+                    onDelete={() => handleRemoveSubcategory(subcat)}
+                    sx={{ m: 0.5 }}
+                  />
+                ))}
+              </Paper>
+            )}
+          </Grid>
+          <Grid item xs={12}>
+            <Divider sx={{ my: 2 }} />
+            <Typography variant="h6" gutterBottom>Existing Categories</Typography>
+            {Object.entries(categoryStructure).map(([category, subcategories]) => (
+              <Box key={category} sx={{ mb: 2 }}>
+                <Typography variant="subtitle1">{category}</Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                  {subcategories.map((subcat, idx) => (
+                    <Chip key={idx} label={subcat} />
+                  ))}
+                </Box>
+              </Box>
+            ))}
+          </Grid>
+        </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleDialogClose}>Cancel</Button>
+        <Button 
+          variant="contained" 
+          onClick={handleAddCategory}
+          disabled={!newCategory.name}
+          sx={{ backgroundColor: "purple", color: "white" }}
+        >
+          Save Category
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
 
   return (
     <Box sx={{ padding: 3 }}>
@@ -506,7 +882,7 @@ const ProductsPage = () => {
               <InputLabel>Sort By</InputLabel>
               <Select
                 defaultValue=""
-                onChange={(e) => handleSort(e.target.value)}
+                onChange={handleSort}
                 label="Sort By"
               >
                 <MenuItem value="nameAsc">Name (A-Z)</MenuItem>
@@ -558,7 +934,7 @@ const ProductsPage = () => {
                           backgroundColor: subcategory === subcat ? '#e3f2fd' : 'transparent',
                           '&:hover': { backgroundColor: '#f5f5f5' }
                         }}
-                        onClick={() => setSubcategory(subcat)}
+                        onClick={() => handleSubcategorySelect(subcat)}
                       >
                         {subcat}
                       </Typography>
@@ -683,270 +1059,26 @@ const ProductsPage = () => {
         </Grid>
       </Grid>
 
-      {/* Product Details Dialog */}
-      <Dialog 
-        open={openProductDialog && selectedProduct} 
-        onClose={handleDialogClose}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>{selectedProduct?.name}</DialogTitle>
-        <DialogContent>
-          {selectedProduct && (
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <CardMedia
-                  component="img"
-                  image={selectedProduct.image}
-                  alt={selectedProduct.name}
-                  sx={{ width: '100%', maxHeight: 300, objectFit: 'contain' }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="h5" gutterBottom>{selectedProduct.name}</Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Rating value={selectedProduct.rating} precision={0.5} readOnly />
-                  <Typography variant="body2" sx={{ ml: 1 }}>{selectedProduct.rating}/5</Typography>
-                </Box>
-                <Typography variant="body1" paragraph>
-                  <strong>Category:</strong> {selectedProduct.category} › {selectedProduct.subcategory}
-                </Typography>
-                <Typography variant="h4" color="primary" gutterBottom>
-                  UGX {selectedProduct.price.toLocaleString()}
-                </Typography>
-                <Typography variant="body1" paragraph>
-                  <strong>Stock:</strong> {selectedProduct.stock} units
-                </Typography>
-                <Typography variant="body1" paragraph>
-                  <strong>Barcode:</strong> {selectedProduct.barcode}
-                </Typography>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="body1">
-                  <strong>Description:</strong> {selectedProduct.description}
-                </Typography>
-              </Grid>
-            </Grid>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDialogClose}>Close</Button>
-          <Button 
-            variant="contained" 
-            onClick={handleDialogClose}
-            sx={{ backgroundColor: "purple", color: "white" }}
-          >
-            Edit Product
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Render Dialogs */}
+      <ProductDetailsDialog />
+      <ProductFormDialog />
+      <ManageCategoriesDialog />
 
-      {/* Add/Edit Product Dialog */}
-      <Dialog 
-        open={openProductDialog && !selectedProduct} 
-        onClose={handleDialogClose}
-        maxWidth="sm"
-        fullWidth
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <DialogTitle>Add New Product</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Product Name"
-                value={newProduct.name}
-                onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Category</InputLabel>
-                <Select
-                  value={newProduct.category}
-                  onChange={(e) => setNewProduct({...newProduct, category: e.target.value, subcategory: ""})}
-                  label="Category"
-                >
-                  {Object.keys(categoryStructure).map((cat) => (
-                    <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Subcategory</InputLabel>
-                <Select
-                  value={newProduct.subcategory}
-                  onChange={(e) => setNewProduct({...newProduct, subcategory: e.target.value})}
-                  label="Subcategory"
-                  disabled={!newProduct.category}
-                >
-                  {newProduct.category && categoryStructure[newProduct.category]?.map((subcat) => (
-                    <MenuItem key={subcat} value={subcat}>{subcat}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Price (UGX)"
-                type="number"
-                value={newProduct.price}
-                onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Stock Quantity"
-                type="number"
-                value={newProduct.stock}
-                onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Barcode/ID"
-                value={newProduct.barcode}
-                onChange={(e) => setNewProduct({...newProduct, barcode: e.target.value})}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Description"
-                multiline
-                rows={4}
-                value={newProduct.description}
-                onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="body2">Product Rating</Typography>
-              <Rating
-                value={newProduct.rating}
-                onChange={(e, newValue) => setNewProduct({...newProduct, rating: newValue})}
-                precision={0.5}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="body2" gutterBottom>Product Image</Typography>
-              <input
-                accept="image/*"
-                style={{ display: 'none' }}
-                id="product-image-upload"
-                type="file"
-                onChange={handleImageUpload}
-              />
-              <label htmlFor="product-image-upload">
-                <Button variant="outlined" component="span" fullWidth>
-                  Upload Image
-                </Button>
-              </label>
-              {newProduct.imagePreview && (
-                <Box sx={{ mt: 2, textAlign: 'center' }}>
-                  <img 
-                    src={newProduct.imagePreview} 
-                    alt="Preview" 
-                    style={{ maxHeight: 200, maxWidth: '100%' }}
-                  />
-                </Box>
-              )}
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDialogClose}>Cancel</Button>
-          <Button 
-            variant="contained" 
-            onClick={handleAddProduct}
-            disabled={!newProduct.name || !newProduct.category}
-            sx={{ backgroundColor: "purple", color: "white" }}
-          >
-            Save Product
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Manage Categories Dialog */}
-      <Dialog 
-        open={openCategoryDialog} 
-        onClose={handleDialogClose}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Manage Categories</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>Add New Category</Typography>
-              <TextField
-                fullWidth
-                label="Category Name"
-                value={newCategory.name}
-                onChange={(e) => setNewCategory({...newCategory, name: e.target.value})}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="body1" gutterBottom>Subcategories</Typography>
-              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                <TextField
-                  fullWidth
-                  label="Add Subcategory"
-                  value={newSubcategory}
-                  onChange={(e) => setNewSubcategory(e.target.value)}
-                />
-                <Button 
-                  variant="contained" 
-                  onClick={handleAddSubcategory}
-                  disabled={!newSubcategory}
-                >
-                  Add
-                </Button>
-              </Box>
-              {newCategory.subcategories.length > 0 && (
-                <Paper sx={{ p: 2, mb: 2 }}>
-                  {newCategory.subcategories.map((subcat, index) => (
-                    <Chip
-                      key={index}
-                      label={subcat}
-                      onDelete={() => handleRemoveSubcategory(subcat)}
-                      sx={{ m: 0.5 }}
-                    />
-                  ))}
-                </Paper>
-              )}
-            </Grid>
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="h6" gutterBottom>Existing Categories</Typography>
-              {Object.entries(categoryStructure).map(([category, subcategories]) => (
-                <Box key={category} sx={{ mb: 2 }}>
-                  <Typography variant="subtitle1">{category}</Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                    {subcategories.map((subcat, idx) => (
-                      <Chip key={idx} label={subcat} />
-                    ))}
-                  </Box>
-                </Box>
-              ))}
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDialogClose}>Cancel</Button>
-          <Button 
-            variant="contained" 
-            onClick={handleAddCategory}
-            disabled={!newCategory.name}
-            sx={{ backgroundColor: "purple", color: "white" }}
-          >
-            Save Category
-          </Button>
-        </DialogActions>
-      </Dialog>
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

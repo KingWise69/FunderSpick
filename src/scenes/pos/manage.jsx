@@ -4,7 +4,7 @@ import {
   Dialog, DialogActions, DialogContent, DialogTitle, TextField,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   TablePagination, IconButton, MenuItem, Select, InputLabel, FormControl,
-  Chip, Badge, Tooltip , Tabs, Tab, Paper, Divider, Avatar
+  Chip, Badge, Tooltip, Tabs, Tab, Paper, Divider, Avatar
 } from '@mui/material';
 import {
   SaveAlt, FilterList, PictureAsPdf, GetApp, Search, DateRange,
@@ -15,6 +15,9 @@ import {
   LineChart, BarChart, PieChart, Line, Bar, Pie, XAxis, YAxis,
   CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, Cell
 } from 'recharts';
+import { DateRangePicker } from '@mui/lab';
+import AdapterDateFns from '@mui/lab/AdapterDateFns';
+import LocalizationProvider from '@mui/lab/LocalizationProvider';
 
 const ManageSalesPage = () => {
   // State management
@@ -31,6 +34,8 @@ const ManageSalesPage = () => {
   const [tabValue, setTabValue] = useState(0);
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const [selectedSale, setSelectedSale] = useState(null);
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [openDateRangePicker, setOpenDateRangePicker] = useState(false);
 
   // Generate mock data
   useEffect(() => {
@@ -81,10 +86,16 @@ const ManageSalesPage = () => {
   // Handle export function
   const handleExport = (format) => {
     console.log(`Exporting data as ${format}`);
-    // In a real app, you would implement actual export logic here
-    // For CSV: Convert data to CSV format and download
-    // For PDF: Generate PDF using a library like jsPDF or similar
     alert(`Exporting sales data as ${format}`);
+  };
+
+  // Handle date range change
+  const handleDateRangeChange = (newValue) => {
+    setDateRange(newValue);
+    if (newValue[0] && newValue[1]) {
+      setTimePeriod('custom');
+      setOpenDateRangePicker(false);
+    }
   };
 
   // Apply filters
@@ -134,16 +145,25 @@ const ManageSalesPage = () => {
       case 'yearly':
         cutoffDate.setFullYear(cutoffDate.getFullYear() - 1);
         break;
+      case 'custom':
+        if (dateRange[0] && dateRange[1]) {
+          return filtered.filter(sale => {
+            const saleDate = new Date(sale.date);
+            return saleDate >= dateRange[0] && saleDate <= dateRange[1];
+          });
+        }
+        break;
       default:
         break;
     }
     
-    if (timePeriod !== 'all') {
+    if (timePeriod !== 'all' && timePeriod !== 'custom') {
       filtered = filtered.filter(sale => new Date(sale.date) >= cutoffDate);
     }
     
     setFilteredSales(filtered);
-  }, [salesData, statusFilter, paymentFilter, customerFilter, searchTerm, timePeriod]);
+  }, [salesData, statusFilter, paymentFilter, customerFilter, searchTerm, timePeriod, dateRange]);
+
   // Calculate summary metrics
   const calculateMetrics = () => {
     const totalSales = filteredSales.length;
@@ -152,10 +172,7 @@ const ManageSalesPage = () => {
     const pendingSales = filteredSales.filter(sale => sale.status === 'Pending').length;
     const cancelledSales = filteredSales.filter(sale => sale.status === 'Cancelled').length;
     
-    // Calculate average order value
     const averageOrderValue = totalSales > 0 ? (totalRevenue / totalSales).toFixed(2) : 0;
-    
-    // Calculate conversion rate (placeholder)
     const conversionRate = (completedSales / totalSales * 100).toFixed(1);
     
     return {
@@ -261,41 +278,81 @@ const ManageSalesPage = () => {
 
       {/* Time period selector */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           <Button
             variant={timePeriod === 'daily' ? 'contained' : 'outlined'}
             startIcon={<Today />}
-            onClick={() => setTimePeriod('daily')}
+            onClick={() => {
+              setTimePeriod('daily');
+              setDateRange([null, null]);
+            }}
           >
             Today
           </Button>
           <Button
             variant={timePeriod === 'weekly' ? 'contained' : 'outlined'}
             startIcon={<CalendarViewWeek />}
-            onClick={() => setTimePeriod('weekly')}
+            onClick={() => {
+              setTimePeriod('weekly');
+              setDateRange([null, null]);
+            }}
           >
             This Week
           </Button>
           <Button
             variant={timePeriod === 'monthly' ? 'contained' : 'outlined'}
             startIcon={<CalendarViewMonth />}
-            onClick={() => setTimePeriod('monthly')}
+            onClick={() => {
+              setTimePeriod('monthly');
+              setDateRange([null, null]);
+            }}
           >
             This Month
           </Button>
           <Button
             variant={timePeriod === 'yearly' ? 'contained' : 'outlined'}
             startIcon={<DateRange />}
-            onClick={() => setTimePeriod('yearly')}
+            onClick={() => {
+              setTimePeriod('yearly');
+              setDateRange([null, null]);
+            }}
           >
             This Year
           </Button>
           <Button
             variant={timePeriod === 'all' ? 'contained' : 'outlined'}
-            onClick={() => setTimePeriod('all')}
+            onClick={() => {
+              setTimePeriod('all');
+              setDateRange([null, null]);
+            }}
           >
             All Time
           </Button>
+          
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <Button
+              variant={timePeriod === 'custom' ? 'contained' : 'outlined'}
+              startIcon={<DateRange />}
+              onClick={() => setOpenDateRangePicker(true)}
+            >
+              {dateRange[0] && dateRange[1] 
+                ? `${dateRange[0].toLocaleDateString()} - ${dateRange[1].toLocaleDateString()}`
+                : 'Custom Range'}
+            </Button>
+            
+            <DateRangePicker
+              open={openDateRangePicker}
+              onClose={() => setOpenDateRangePicker(false)}
+              value={dateRange}
+              onChange={handleDateRangeChange}
+              renderInput={(startProps, endProps) => (
+                <Box sx={{ display: 'none' }}>
+                  <TextField {...startProps} />
+                  <TextField {...endProps} />
+                </Box>
+              )}
+            />
+          </LocalizationProvider>
         </Box>
         
         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -332,7 +389,11 @@ const ManageSalesPage = () => {
             <CardContent>
               <Typography variant="subtitle2" color="text.secondary">TOTAL SALES</Typography>
               <Typography variant="h4">{metrics.totalSales}</Typography>
-              <Typography variant="caption">Last {timePeriod}</Typography>
+              <Typography variant="caption">
+                {timePeriod === 'custom' && dateRange[0] && dateRange[1] 
+                  ? `${dateRange[0].toLocaleDateString()} - ${dateRange[1].toLocaleDateString()}`
+                  : `Last ${timePeriod}`}
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -341,7 +402,11 @@ const ManageSalesPage = () => {
             <CardContent>
               <Typography variant="subtitle2" color="text.secondary">TOTAL REVENUE</Typography>
               <Typography variant="h4">UGX {metrics.totalRevenue.toLocaleString()}</Typography>
-              <Typography variant="caption">Last {timePeriod}</Typography>
+              <Typography variant="caption">
+                {timePeriod === 'custom' && dateRange[0] && dateRange[1] 
+                  ? `${dateRange[0].toLocaleDateString()} - ${dateRange[1].toLocaleDateString()}`
+                  : `Last ${timePeriod}`}
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -400,7 +465,7 @@ const ManageSalesPage = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
-                  <Tooltip />
+                  <RechartsTooltip />
                   <Legend />
                   <Line type="monotone" dataKey="sales" stroke="#8884d8" name="Sales (UGX)" />
                 </LineChart>
@@ -415,7 +480,7 @@ const ManageSalesPage = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip />
+                  <RechartsTooltip />
                   <Legend />
                   <Bar dataKey="sales" fill="#82ca9d" name="Revenue (UGX)" />
                 </BarChart>
@@ -442,7 +507,7 @@ const ManageSalesPage = () => {
                       <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.name]} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <RechartsTooltip />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -468,7 +533,7 @@ const ManageSalesPage = () => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <RechartsTooltip />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>

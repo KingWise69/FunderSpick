@@ -22,6 +22,7 @@ import { ColorModeContext, useMode } from "./theme";
 import Calendar from "./scenes/calendar/calendar";
 
 // Reports
+
 import Income from "./scenes/reports/income";
 import Expense from "./scenes/reports/expense";
 import IncomeVsExpenses from "./scenes/reports/income-vs-expenses";
@@ -30,6 +31,8 @@ import BalanceSheet from "./scenes/reports/balance-sheet";
 import Transaction from "./scenes/reports/transaction";
 import AccountBalance from "./scenes/reports/account-balance";
 import ProfitAndLoss from "./scenes/reports/profit-and-loss";
+import Receipts from "./scenes/pos/receipts";
+import Cash from "./scenes/reports/cash";
 
 // Ledger
 import LedgerList from "./scenes/ledger/index";
@@ -39,6 +42,7 @@ import LedgerCreate from "./scenes/ledger/create";
 import CreditVoucher from "./scenes/vouchers/credit";
 import DebitVoucher from "./scenes/vouchers/debit";
 import CreateVoucher from "./scenes/vouchers/create";
+import JournalVoucher from "./scenes/vouchers/journal";
 
 // Inventory
 import Inventory from "./scenes/inventory/overview";
@@ -237,6 +241,19 @@ function App() {
               } />
 
               {/* Reports */}
+              <Route path="/pos/receipts" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Receipts />
+                </ProtectedRoute>
+              } />
+              {/* Reports */}
+              <Route path="/reports/cash" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Cash />
+                </ProtectedRoute>
+              } />
+
+
               <Route path="/reports/income" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <Income />
@@ -353,6 +370,11 @@ function App() {
               <Route path="/vouchers/create" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <CreateVoucher />
+                </ProtectedRoute>
+              } />
+              <Route path="/vouchers/journal" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <JournalVoucher />
                 </ProtectedRoute>
               } />
 

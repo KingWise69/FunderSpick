@@ -43,11 +43,44 @@ const initialEmployees = [
     joiningDate: "2023-09-10",
     status: "Inactive",
   },
+  {
+    id: 3,
+    employeeId: "EMP003",
+    name: "Queen Victoria",
+    email: "Queen@example.com",
+    phone: "+256 987 654 321",
+    designation: "Banking",
+    joiningDate: "2024-09-10",
+    status: "Suspended",
+  },
+  {
+    id: 4,
+    employeeId: "EMP004",
+    name: "Bob Tulemeka",
+    email: "bobtu@example.com",
+    phone: "+256 782 654 321",
+    designation: "Marketing",
+    joiningDate: "2024-09-11",
+    status: "Fired",
+  },
+  {
+    id: 5,
+    employeeId: "EMP005",
+    name: "Garvin Tulemeka",
+    email: "bobtu@example.com",
+    phone: "+256 782 654 321",
+    designation: "Marketing",
+    joiningDate: "2024-09-11",
+    status: "Warning",
+  },
 ];
 
 const statusColors = {
   Active: "green",
-  Inactive: "red",
+  Inactive: "blue",
+  Suspended: "orange",
+  Fired: "red",
+  Warning: "grey",
   "New Joiner": "purple",
 };
 

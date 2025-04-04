@@ -129,20 +129,19 @@ const Sidebar = () => {
           <SubMenu title="Financial Management" icon={<AccountBalanceOutlinedIcon />}>
           <Item title="Dashboard" to="/pos/dashboard" icon={<HomeOutlinedIcon />} selected={selected} setSelected={setSelected} />
           
+          
             <SubMenu title="Sales" icon={<MonetizationOnOutlinedIcon />}>
 
             
               
               
-              <SubMenu title="Voucher" icon={<LocalOfferOutlinedIcon />}>
-              <Item title="Credit Voucher" to="/vouchers/credit" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Debit Voucher" to="/vouchers/debit" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Create Voucher" to="/vouchers/create" icon={<InventoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
               
-            </SubMenu>
+            
+
+            
               <Item title="Payment listing" to="/payment-listings" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Invoice" to="/payment-listings" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Create Payment" to="/payment" icon={<CreditCardOutlinedIcon />} selected={selected} setSelected={setSelected} />
+             
             </SubMenu>
 
            
@@ -150,10 +149,24 @@ const Sidebar = () => {
               <Item title="Ledger List" to="/ledger/list" icon={<MenuBookOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Create Ledger" to="/ledger/create" icon={<CreateOutlinedIcon />} selected={selected} setSelected={setSelected} />
             </SubMenu>
+            <SubMenu title="Transactions" icon={<MenuBookOutlinedIcon />}>
+            <SubMenu title="Voucher" icon={<LocalOfferOutlinedIcon />}>
+              <Item title="Credit Voucher" to="/vouchers/credit" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Debit Voucher" to="/vouchers/debit" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              
+              <Item title="Journal Voucher" to="/vouchers/journal" icon={<MenuBookOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              
+            </SubMenu>
             <SubMenu title="Bills" icon={<ReceiptLongOutlinedIcon />}>
               <Item title="Manage Bill" to="/bills/manage" icon={<ReceiptOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Create Bill" to="/bills/create" icon={<CreateOutlinedIcon />} selected={selected} setSelected={setSelected} />
             </SubMenu>
+              
+              
+             
+             
+            </SubMenu>
+            
             <SubMenu title="Reports" icon={<AssessmentOutlinedIcon />}>
             <Item title="Income" to="/reports/income" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Expense" to="/reports/expense" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
@@ -162,6 +175,7 @@ const Sidebar = () => {
               <Item title="Profit & Loss" to="/reports/profit-and-loss" icon={<BalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Trial Balance" to="/reports/trial-balance" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Account Balance" to="/reports/account-Balance" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Cash Flow Statement" to="/reports/cash" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Balance Sheet" to="/reports/balance-sheet" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
               
               

@@ -426,7 +426,7 @@ const POSDashboard = () => {
                   variant="contained" 
                   startIcon={<ShoppingCart />} 
                   sx={{ mb: 1 }}
-                  href="/pos/new_order"
+                  href="/inventory/product-list"
                 >
                   New Order
                 </Button>
@@ -458,7 +458,7 @@ const POSDashboard = () => {
                   fullWidth 
                   variant="contained" 
                   startIcon={<Inventory />}
-                  href="/pos/inventory"
+                  href="/inventory/overview"
                 >
                   Inventory
                 </Button>
@@ -488,7 +488,7 @@ const POSDashboard = () => {
               <Button 
                 size="small" 
                 startIcon={<Add />}
-                href="/pos/new_order"
+                href="/pos/new_sales"
               >
                 New Sale
               </Button>
