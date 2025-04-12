@@ -22,7 +22,6 @@ import { ColorModeContext, useMode } from "./theme";
 import Calendar from "./scenes/calendar/calendar";
 
 // Reports
-
 import Income from "./scenes/reports/income";
 import Expense from "./scenes/reports/expense";
 import IncomeVsExpenses from "./scenes/reports/income-vs-expenses";
@@ -119,6 +118,10 @@ function App() {
   const [isSidebar, setIsSidebar] = useState(true);
   const [userRole, setUserRole] = useState(localStorage.getItem('userRole') || null);
   const navigate = useNavigate();
+
+  // Added port configuration (for logging/debugging)
+  const port = process.env.PORT || 4000;
+  console.log(`Application configured to run on port: ${port}`);
 
   useEffect(() => {
     // Check if user was logged in before refresh
@@ -250,14 +253,11 @@ function App() {
                   <Receipts />
                 </ProtectedRoute>
               } />
-              {/* Reports */}
               <Route path="/reports/cash" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <Cash />
                 </ProtectedRoute>
               } />
-
-
               <Route path="/reports/income" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <Income />
@@ -304,7 +304,6 @@ function App() {
                 </ProtectedRoute>
               } />
               
-
               {/* Bills */}
               <Route path="/bills/manage" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
@@ -323,8 +322,7 @@ function App() {
                   <Inventory />
                 </ProtectedRoute>
               } />
-               {/* Inventory */}
-               <Route path="/inventory/payments" element={
+              <Route path="/inventory/payments" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <SupplyPay />
                 </ProtectedRoute>
@@ -339,13 +337,11 @@ function App() {
                   <Barcode />
                 </ProtectedRoute>
               } />
-
-<Route path="/inventory/supply" element={
+              <Route path="/inventory/supply" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <SupplyChain />
                 </ProtectedRoute>
               } />
-
               <Route path="/inventory/stock" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <Stock />
