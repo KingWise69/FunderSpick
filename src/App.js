@@ -120,7 +120,7 @@ function App() {
   const navigate = useNavigate();
 
   // Added port configuration (for logging/debugging)
-  const port = process.env.PORT || 4000;
+  const port = process.env.PORT || 1000;
   console.log(`Application configured to run on port: ${port}`);
 
   useEffect(() => {
