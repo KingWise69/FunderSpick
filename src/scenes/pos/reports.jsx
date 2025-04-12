@@ -25,7 +25,8 @@ import {
   Select,
   MenuItem,
   useTheme,
-  Chip
+  Chip,
+  Avatar
 } from '@mui/material';
 import {
   Receipt,
@@ -40,12 +41,48 @@ import {
   Email,
   Search,
   FilterList,
-  Refresh
+  Refresh,
+  AttachMoney,
+  CreditCard,
+  PhoneAndroid,
+  AccountBalance
 } from '@mui/icons-material';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import GridOnIcon from '@mui/icons-material/GridOn';
 import { DataGrid } from '@mui/x-data-grid';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+
+// Sample product images (in a real app, these would come from your database)
+const productImages = {
+  1: '/assets/fanta.jpg',
+  2: '/assets/Heineken.png',
+  3: '/assets/pizza.jpeg',
+  4: '/assets/veggie.jpg',
+  5: '/assets/water.jpg'
+};
+
+// Sample employee images
+const employeeImages = {
+  1: '/assets/moses.jpg',
+  2: '/assets/jane.jpg',
+  3: '/assets/ivan.jpg'
+};
+
+// Sample inventory images
+const inventoryImages = {
+  1: '/assets/Heineken.png',
+  2: '/assets/veggie.jpg',
+  3: '/assets/water.jpg',
+  4: '/assets/wings.jpg'
+};
+
+// Payment type icons
+const paymentIcons = {
+  Cash: <AttachMoney />,
+  'Credit Card': <CreditCard />,
+  'Mobile Money': <PhoneAndroid />,
+  'Bank Transfer': <AccountBalance />
+};
 
 // Sample report data
 const salesData = [
@@ -57,24 +94,24 @@ const salesData = [
 ];
 
 const productPerformance = [
-  { id: 1, name: 'Fanta 500ml', category: 'Beverages', sold: 125, revenue: 187500, profit: 75000 },
-  { id: 2, name: 'Heineken Beer', category: 'Alcohol', sold: 89, revenue: 445000, profit: 178000 },
-  { id: 3, name: 'Chicken Pizza', category: 'Food', sold: 76, revenue: 380000, profit: 190000 },
-  { id: 4, name: 'Veggie Burger', category: 'Food', sold: 64, revenue: 256000, profit: 102400 },
-  { id: 5, name: 'Mineral Water', category: 'Beverages', sold: 53, revenue: 106000, profit: 53000 },
+  { id: 1, name: 'Fanta 500ml', category: 'Beverages', sold: 125, revenue: 187500, profit: 75000, image: productImages[1] },
+  { id: 2, name: 'Heineken Beer', category: 'Alcohol', sold: 89, revenue: 445000, profit: 178000, image: productImages[2] },
+  { id: 3, name: 'Chicken Pizza', category: 'Food', sold: 76, revenue: 380000, profit: 190000, image: productImages[3] },
+  { id: 4, name: 'Veggie Burger', category: 'Food', sold: 64, revenue: 256000, profit: 102400, image: productImages[4] },
+  { id: 5, name: 'Mineral Water', category: 'Beverages', sold: 53, revenue: 106000, profit: 53000, image: productImages[5] },
 ];
 
 const employeePerformance = [
-  { id: 1, name: 'John Doe', sales: 785000, transactions: 52, avgTicket: 15096 },
-  { id: 2, name: 'Jane Smith', sales: 920000, transactions: 61, avgTicket: 15081 },
-  { id: 3, name: 'Mike Johnson', sales: 680000, transactions: 47, avgTicket: 14468 },
+  { id: 1, name: 'Moses Ikuntabam', sales: 785000, transactions: 52, avgTicket: 15096, image: employeeImages[1] },
+  { id: 2, name: 'Jane Tumulinda', sales: 920000, transactions: 61, avgTicket: 15081, image: employeeImages[2] },
+  { id: 3, name: 'Ivan Semakula', sales: 680000, transactions: 47, avgTicket: 14468, image: employeeImages[3] },
 ];
 
 const paymentTypes = [
-  { name: 'Cash', value: 45, color: '#4CAF50' },
-  { name: 'Credit Card', value: 35, color: '#2196F3' },
-  { name: 'Mobile Money', value: 15, color: '#FF9800' },
-  { name: 'Bank Transfer', value: 5, color: '#9E9E9E' },
+  { name: 'Cash', value: 45, color: '#4CAF50', icon: paymentIcons['Cash'] },
+  { name: 'Credit Card', value: 35, color: '#2196F3', icon: paymentIcons['Credit Card'] },
+  { name: 'Mobile Money', value: 15, color: '#FF9800', icon: paymentIcons['Mobile Money'] },
+  { name: 'Bank Transfer', value: 5, color: '#9E9E9E', icon: paymentIcons['Bank Transfer'] },
 ];
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
@@ -254,9 +291,9 @@ const ReportsPage = () => {
                   label="Employee"
                 >
                   <MenuItem value="all">All Employees</MenuItem>
-                  <MenuItem value="1">John Doe</MenuItem>
-                  <MenuItem value="2">Jane Smith</MenuItem>
-                  <MenuItem value="3">Mike Johnson</MenuItem>
+                  <MenuItem value="1">Moses Ikuntabam </MenuItem>
+                  <MenuItem value="2">Jane Tumulinda</MenuItem>
+                  <MenuItem value="3">Ivan Semakula</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -472,7 +509,21 @@ const ReportsPage = () => {
                   <DataGrid
                     rows={filteredData.productPerformance}
                     columns={[
-                      { field: 'name', headerName: 'Product', width: 200 },
+                      { 
+                        field: 'name', 
+                        headerName: 'Product', 
+                        width: 200,
+                        renderCell: (params) => (
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Avatar 
+                              src={params.row.image} 
+                              alt={params.row.name}
+                              sx={{ width: 30, height: 30, mr: 2 }}
+                            />
+                            {params.row.name}
+                          </Box>
+                        )
+                      },
                       { field: 'category', headerName: 'Category', width: 150 },
                       { field: 'sold', headerName: 'Qty Sold', width: 120 },
                       { field: 'revenue', headerName: 'Revenue', width: 150, valueFormatter: (params) => formatCurrency(params.value) },
@@ -525,7 +576,21 @@ const ReportsPage = () => {
                   <DataGrid
                     rows={filteredData.employeePerformance}
                     columns={[
-                      { field: 'name', headerName: 'Employee', width: 200 },
+                      { 
+                        field: 'name', 
+                        headerName: 'Employee', 
+                        width: 200,
+                        renderCell: (params) => (
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Avatar 
+                              src={params.row.image} 
+                              alt={params.row.name}
+                              sx={{ width: 30, height: 30, mr: 2 }}
+                            />
+                            {params.row.name}
+                          </Box>
+                        )
+                      },
                       { field: 'sales', headerName: 'Total Sales', width: 150, valueFormatter: (params) => formatCurrency(params.value) },
                       { field: 'transactions', headerName: 'Transactions', width: 120 },
                       { field: 'avgTicket', headerName: 'Avg. Ticket', width: 150, valueFormatter: (params) => formatCurrency(params.value) },
@@ -606,7 +671,12 @@ const ReportsPage = () => {
                     <TableBody>
                       {filteredData.paymentTypes.map((row) => (
                         <TableRow key={row.name}>
-                          <TableCell>{row.name}</TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              {paymentIcons[row.name]}
+                              <Box sx={{ ml: 1 }}>{row.name}</Box>
+                            </Box>
+                          </TableCell>
                           <TableCell align="right">{Math.round(row.value * 3.78)}</TableCell>
                           <TableCell align="right">{formatCurrency(row.value * 57800)}</TableCell>
                           <TableCell align="right">{row.value}%</TableCell>
@@ -627,13 +697,27 @@ const ReportsPage = () => {
                 <Box sx={{ height: 400 }}>
                   <DataGrid
                     rows={[
-                      { id: 1, name: 'Heineken Beer', current: 3, min: 10, category: 'Alcohol' },
-                      { id: 2, name: 'Veggie Burger', current: 5, min: 15, category: 'Food' },
-                      { id: 3, name: 'Mineral Water', current: 8, min: 20, category: 'Beverages' },
-                      { id: 4, name: 'Chicken Wings', current: 7, min: 15, category: 'Food' },
+                      { id: 1, name: 'Heineken Beer', current: 3, min: 10, category: 'Alcohol', image: inventoryImages[1] },
+                      { id: 2, name: 'Veggie Burger', current: 5, min: 15, category: 'Food', image: inventoryImages[2] },
+                      { id: 3, name: 'Mineral Water', current: 8, min: 20, category: 'Beverages', image: inventoryImages[3] },
+                      { id: 4, name: 'Chicken Wings', current: 7, min: 15, category: 'Food', image: inventoryImages[4] },
                     ]}
                     columns={[
-                      { field: 'name', headerName: 'Product', width: 200 },
+                      { 
+                        field: 'name', 
+                        headerName: 'Product', 
+                        width: 200,
+                        renderCell: (params) => (
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Avatar 
+                              src={params.row.image} 
+                              alt={params.row.name}
+                              sx={{ width: 30, height: 30, mr: 2 }}
+                            />
+                            {params.row.name}
+                          </Box>
+                        )
+                      },
                       { field: 'category', headerName: 'Category', width: 150 },
                       { field: 'current', headerName: 'Current Stock', width: 150 },
                       { field: 'min', headerName: 'Min Required', width: 150 },

@@ -21,7 +21,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import { useTheme } from "@mui/material/styles";
 
-// Initial Employee Data
+// Initial Employee Data with Categories and Sub-categories
 const initialEmployees = [
   {
     id: 1,
@@ -30,6 +30,8 @@ const initialEmployees = [
     email: "alice@example.com",
     phone: "+256 123 456 789",
     designation: "Developer",
+    category: "Tech",
+    subCategory: "Frontend",
     joiningDate: "2024-02-15",
     status: "Active",
   },
@@ -40,6 +42,8 @@ const initialEmployees = [
     email: "bob@example.com",
     phone: "+256 987 654 321",
     designation: "Finance",
+    category: "Finance",
+    subCategory: "Accounting",
     joiningDate: "2023-09-10",
     status: "Inactive",
   },
@@ -50,6 +54,8 @@ const initialEmployees = [
     email: "Queen@example.com",
     phone: "+256 987 654 321",
     designation: "Banking",
+    category: "Finance",
+    subCategory: "Loans",
     joiningDate: "2024-09-10",
     status: "Suspended",
   },
@@ -60,6 +66,8 @@ const initialEmployees = [
     email: "bobtu@example.com",
     phone: "+256 782 654 321",
     designation: "Marketing",
+    category: "Sales",
+    subCategory: "Digital",
     joiningDate: "2024-09-11",
     status: "Fired",
   },
@@ -70,6 +78,8 @@ const initialEmployees = [
     email: "bobtu@example.com",
     phone: "+256 782 654 321",
     designation: "Marketing",
+    category: "Sales",
+    subCategory: "Branding",
     joiningDate: "2024-09-11",
     status: "Warning",
   },
@@ -87,6 +97,8 @@ const statusColors = {
 const EmployeeList = () => {
   const theme = useTheme();
   const [employees, setEmployees] = useState(initialEmployees);
+  const [searchCategory, setSearchCategory] = useState("");
+  const [searchSubCategory, setSearchSubCategory] = useState("");
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const [newEmployee, setNewEmployee] = useState({
     employeeId: "",
@@ -94,8 +106,17 @@ const EmployeeList = () => {
     email: "",
     phone: "",
     designation: "",
+    category: "",
+    subCategory: "",
     joiningDate: "",
     status: "Active",
+  });
+
+  const filteredEmployees = employees.filter((employee) => {
+    return (
+      (searchCategory ? employee.category.includes(searchCategory) : true) &&
+      (searchSubCategory ? employee.subCategory.includes(searchSubCategory) : true)
+    );
   });
 
   const handleAddEmployee = () => {
@@ -107,6 +128,8 @@ const EmployeeList = () => {
       email: "",
       phone: "",
       designation: "",
+      category: "",
+      subCategory: "",
       joiningDate: "",
       status: "Active",
     });
@@ -118,6 +141,8 @@ const EmployeeList = () => {
     { field: "email", headerName: "Email", flex: 1.5 },
     { field: "phone", headerName: "Phone Number", flex: 1.2 },
     { field: "designation", headerName: "Designation", flex: 1 },
+    { field: "category", headerName: "Category", flex: 1 },
+    { field: "subCategory", headerName: "Sub-category", flex: 1 },
     { field: "joiningDate", headerName: "Joining Date", flex: 1 },
     {
       field: "status",
@@ -145,13 +170,31 @@ const EmployeeList = () => {
         Employee Management
       </Typography>
 
+      {/* Search Filters */}
+      <Box display="flex" gap={2} mt={3}>
+        <TextField
+          label="Search by Category"
+          variant="outlined"
+          fullWidth
+          value={searchCategory}
+          onChange={(e) => setSearchCategory(e.target.value)}
+        />
+        <TextField
+          label="Search by Sub-category"
+          variant="outlined"
+          fullWidth
+          value={searchSubCategory}
+          onChange={(e) => setSearchSubCategory(e.target.value)}
+        />
+      </Box>
+
       {/* Button Cards */}
       <Box display="flex" gap={2} mt={3}>
-        {[
-          { label: "Total Employees", value: employees.length, icon: <PersonIcon />, color: "#E0E0E0" },
-          { label: "Active", value: employees.filter((e) => e.status === "Active").length, icon: <CheckCircleIcon />, color: "#E0E0E0" },
-          { label: "Inactive", value: employees.filter((e) => e.status === "Inactive").length, icon: <CancelIcon />, color: "#E0E0E0" },
-          { label: "New Joiners", value: employees.filter((e) => e.status === "New Joiner").length, icon: <PersonAddIcon />, color: "#E0E0E0" },
+        {[ 
+          { label: "Total Employees", value: filteredEmployees.length, icon: <PersonIcon />, color: "#E0E0E0" },
+          { label: "Active", value: filteredEmployees.filter((e) => e.status === "Active").length, icon: <CheckCircleIcon />, color: "#E0E0E0" },
+          { label: "Inactive", value: filteredEmployees.filter((e) => e.status === "Inactive").length, icon: <CancelIcon />, color: "#E0E0E0" },
+          { label: "New Joiners", value: filteredEmployees.filter((e) => e.status === "New Joiner").length, icon: <PersonAddIcon />, color: "#E0E0E0" },
         ].map((card, index) => (
           <Box
             key={index}
@@ -191,14 +234,14 @@ const EmployeeList = () => {
 
       {/* Employee Table */}
       <Box mt={4}>
-        <DataGrid rows={employees} columns={columns} pageSize={5} autoHeight />
+        <DataGrid rows={filteredEmployees} columns={columns} pageSize={5} autoHeight />
       </Box>
 
       {/* Add Employee Dialog */}
       <Dialog open={openAddDialog} onClose={() => setOpenAddDialog(false)}>
         <DialogTitle>Add Employee</DialogTitle>
         <DialogContent>
-          {["employeeId", "name", "email", "phone", "designation", "joiningDate"].map((field) => (
+          {["employeeId", "name", "email", "phone", "designation", "category", "subCategory", "joiningDate"].map((field) => (
             <TextField
               key={field}
               label={field.replace(/([A-Z])/g, " $1").toUpperCase()}

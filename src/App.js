@@ -33,6 +33,8 @@ import AccountBalance from "./scenes/reports/account-balance";
 import ProfitAndLoss from "./scenes/reports/profit-and-loss";
 import Receipts from "./scenes/pos/receipts";
 import Cash from "./scenes/reports/cash";
+import Payable from "./scenes/reports/payable";
+import Receive from "./scenes/reports/receivable";
 
 // Ledger
 import LedgerList from "./scenes/ledger/index";
@@ -52,6 +54,8 @@ import Stock from "./scenes/inventory/stock";
 import Supply from "./scenes/inventory/supplierList";
 import Transfer from "./scenes/inventory/transfer";
 import CustomerList from "./scenes/inventory/customer";
+import SupplyChain from "./scenes/inventory/supply";
+import SupplyPay from "./scenes/inventory/payments";
 
 // CRM
 import Leads from "./scenes/CRM/leads";
@@ -289,11 +293,17 @@ function App() {
                   <ProfitAndLoss />
                 </ProtectedRoute>
               } />
-              <Route path="/reports/transaction" element={
+              <Route path="/reports/payable" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
-                  <Transaction />
+                  <Receive />
                 </ProtectedRoute>
               } />
+              <Route path="/reports/receivable" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <Payable />
+                </ProtectedRoute>
+              } />
+              
 
               {/* Bills */}
               <Route path="/bills/manage" element={
@@ -313,6 +323,12 @@ function App() {
                   <Inventory />
                 </ProtectedRoute>
               } />
+               {/* Inventory */}
+               <Route path="/inventory/payments" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <SupplyPay />
+                </ProtectedRoute>
+              } />
               <Route path="/inventory/product-list" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <ProductList />
@@ -323,6 +339,13 @@ function App() {
                   <Barcode />
                 </ProtectedRoute>
               } />
+
+<Route path="/inventory/supply" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <SupplyChain />
+                </ProtectedRoute>
+              } />
+
               <Route path="/inventory/stock" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <Stock />

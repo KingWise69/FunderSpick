@@ -107,12 +107,7 @@ const Sidebar = () => {
               
               
             </SubMenu>
-            <SubMenu title="Purchases" icon={<PeopleOutlinedIcon />}>
-              <Item title="Add Purchase" to="/pos/add" icon={<PersonAddIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="List Purchase" to="/pos/list" icon={<PeopleOutlineIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Purchase Returns" to="/pos/returns" icon={<GroupAddIcon />} selected={selected} setSelected={setSelected} />
-              
-            </SubMenu>
+            
             
 
   <Item title="Manage Sales" to="/pos/manage" icon={<TimelineIcon />} selected={selected} setSelected={setSelected} />
@@ -146,9 +141,11 @@ const Sidebar = () => {
 
            
             <SubMenu title="Ledger List" icon={<MenuBookOutlinedIcon />}>
-              <Item title="Ledger List" to="/ledger/list" icon={<MenuBookOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Create Ledger" to="/ledger/create" icon={<CreateOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="General Ledger" to="/ledger/list" icon={<MenuBookOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              
             </SubMenu>
+            <Item title="Accounts Payable" to="/reports/payable" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
+            <Item title="Accounts Receivable" to="/reports/receivable" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
             <SubMenu title="Transactions" icon={<MenuBookOutlinedIcon />}>
             <SubMenu title="Voucher" icon={<LocalOfferOutlinedIcon />}>
               <Item title="Credit Voucher" to="/vouchers/credit" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
@@ -168,6 +165,7 @@ const Sidebar = () => {
             </SubMenu>
             
             <SubMenu title="Reports" icon={<AssessmentOutlinedIcon />}>
+            
             <Item title="Income" to="/reports/income" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Expense" to="/reports/expense" icon={<AccountBalanceOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Income vs Expenses" to="/reports/income-vs-expenses" icon={<PaymentIcon />} selected={selected} setSelected={setSelected} />
@@ -184,9 +182,18 @@ const Sidebar = () => {
 
           <SubMenu title="Inventory Management" icon={<InventoryOutlinedIcon />}>
             <Item title="Overview" to="/inventory/overview" icon={<BookOutlinedIcon />} selected={selected} setSelected={setSelected} />
+            
             <Item title="Product List" to="/inventory/product-list" icon={<InventoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
+            <SubMenu title="Purchases" icon={<PeopleOutlinedIcon />}>
+              <Item title="Add Purchase" to="/pos/add" icon={<PersonAddIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="List Purchase" to="/pos/list" icon={<PeopleOutlineIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Purchase Returns" to="/pos/returns" icon={<GroupAddIcon />} selected={selected} setSelected={setSelected} />
+              
+            </SubMenu>
             <Item title="Print Barcode" to="/inventory/print-bar-code" icon={<InventoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
             <SubMenu title="Stock Movement" icon={<BusinessCenterOutlinedIcon />}>
+            <Item title="Supply Chain" to="/inventory/supply" icon={<InventoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
+            <Item title="Supply Payments" to="/inventory/payments" icon={<InventoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Supplier List" to="/inventory/supplierList" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Customer List" to="/inventory/customer" icon={<PeopleOutlinedIcon />} selected={selected} setSelected={setSelected} />
               <Item title="Transfer List" to="/inventory/transfer" icon={<InventoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
