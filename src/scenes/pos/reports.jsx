@@ -55,7 +55,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 // Sample product images (in a real app, these would come from your database)
 const productImages = {
   1: '/assets/fanta.jpg',
-  2: '/assets/Heineken.png',
+  2: '/assets/heineken.png',
   3: '/assets/pizza.jpeg',
   4: '/assets/veggie.jpg',
   5: '/assets/water.jpg'
@@ -70,7 +70,7 @@ const employeeImages = {
 
 // Sample inventory images
 const inventoryImages = {
-  1: '/assets/Heineken.png',
+  1: '/assets/heineken.png',
   2: '/assets/veggie.jpg',
   3: '/assets/water.jpg',
   4: '/assets/wings.jpg'

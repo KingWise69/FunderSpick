@@ -33,7 +33,7 @@ const productData = [
   { id: 3, name: "Coca-Cola", category: "Soft Drink", price: 1500, rating: 3, stock: 45, image: "/assets/coca.jpg", description: "Classic soda with a unique taste." },
   { id: 4, name: "Pepsi", category: "Soft Drink", price: 1500, rating: 4, stock: 25, image: "/assets/pepsi.jpg", description: "Sweet carbonated beverage." },
   { id: 5, name: "AFIA JUICE Tropical", category: "Juice", price: 2000, rating: 4, stock: 20, image: "/assets/afia_tropical.jpg", description: "Tropical fruit juice." },
-  { id: 6, name: "Heineken Beer 330ml", category: "Alcoholic Beverage", price: 5000, rating: 5, stock: 60, image: "/assets/Heineken.png", description: "Premium lager beer." },
+  { id: 6, name: "Heineken Beer 330ml", category: "Alcoholic Beverage", price: 5000, rating: 5, stock: 60, image: "/assets/heineken.png", description: "Premium lager beer." },
   { id: 7, name: "Bell Lager", category: "Alcoholic Beverage", price: 4500, rating: 4, stock: 40, image: "/assets/bell.png", description: "Popular beer in Uganda." },
   { id: 8, name: "Chocolate Cake", category: "Dessert", price: 3500, rating: 4, stock: 30, image: "/assets/cake.jpg", description: "Rich and decadent chocolate cake." },
 ];
