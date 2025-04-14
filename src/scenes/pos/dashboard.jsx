@@ -509,7 +509,7 @@ const FinancialDashboard = () => {
                       <Typography fontWeight="bold">{account.name}</Typography>
                     </Box>
                     <Typography color={account.balance >= 0 ? 'inherit' : 'error'}>
-                      ${Math.abs(account.balance).toLocaleString()}
+                      UGX{Math.abs(account.balance).toLocaleString()}
                     </Typography>
                   </Box>
                   <Divider sx={{ mt: 1 }} />

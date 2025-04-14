@@ -4,7 +4,7 @@ import {
   Paper, Typography, Box, Button, TextField, Dialog, DialogActions, 
   DialogContent, DialogTitle, Chip, MenuItem 
 } from '@mui/material';
-import { QrCode as QrCodeIcon, Receipt as ReceiptIcon, Payment as PaymentIcon } from '@mui/icons-material';
+import { QrCode as QrCodeIcon, Receipt as ReceiptIcon, Payment as PaymentIcon, Add as AddIcon } from '@mui/icons-material';
 
 const AccountsReceivable = () => {
   const [receivables, setReceivables] = useState([
@@ -30,6 +30,16 @@ const AccountsReceivable = () => {
 
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [openAddDialog, setOpenAddDialog] = useState(false);
+  const [newInvoice, setNewInvoice] = useState({
+    id: '',
+    customer: '',
+    amount: 0,
+    dueDate: '',
+    status: 'unpaid',
+    efrisInvoice: '',
+    tin: ''
+  });
 
   const handlePayment = (invoice) => {
     setSelectedInvoice(invoice);
@@ -43,11 +53,56 @@ const AccountsReceivable = () => {
     setOpenDialog(false);
   };
 
+  const handleAddInvoice = () => {
+    setOpenAddDialog(true);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewInvoice(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmitNewInvoice = () => {
+    // Generate a new ID if not provided
+    const invoiceId = newInvoice.id || `AR-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    
+    setReceivables([...receivables, {
+      ...newInvoice,
+      id: invoiceId,
+      amount: Number(newInvoice.amount)
+    }]);
+    
+    setNewInvoice({
+      id: '',
+      customer: '',
+      amount: 0,
+      dueDate: '',
+      status: 'unpaid',
+      efrisInvoice: '',
+      tin: ''
+    });
+    setOpenAddDialog(false);
+  };
+
   return (
     <Box p={3}>
       <Typography variant="h4" gutterBottom>
         Accounts Receivable
       </Typography>
+
+      <Box mb={2} display="flex" justifyContent="flex-end">
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={handleAddInvoice}
+        >
+          Add Invoice
+        </Button>
+      </Box>
       
       <TableContainer component={Paper}>
         <Table>
@@ -134,6 +189,86 @@ const AccountsReceivable = () => {
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
           <Button onClick={markAsPaid} color="primary">Confirm Payment</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Invoice Dialog */}
+      <Dialog open={openAddDialog} onClose={() => setOpenAddDialog(false)}>
+        <DialogTitle>Add New Invoice</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="Invoice ID (optional)"
+            name="id"
+            value={newInvoice.id}
+            onChange={handleInputChange}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Customer Name"
+            name="customer"
+            value={newInvoice.customer}
+            onChange={handleInputChange}
+            margin="normal"
+            required
+          />
+          <TextField
+            fullWidth
+            label="TIN"
+            name="tin"
+            value={newInvoice.tin}
+            onChange={handleInputChange}
+            margin="normal"
+            required
+          />
+          <TextField
+            fullWidth
+            label="Amount (UGX)"
+            name="amount"
+            type="number"
+            value={newInvoice.amount}
+            onChange={handleInputChange}
+            margin="normal"
+            required
+          />
+          <TextField
+            fullWidth
+            label="Due Date"
+            name="dueDate"
+            type="date"
+            value={newInvoice.dueDate}
+            onChange={handleInputChange}
+            margin="normal"
+            InputLabelProps={{ shrink: true }}
+            required
+          />
+          <TextField
+            fullWidth
+            label="EFRIS Invoice Number"
+            name="efrisInvoice"
+            value={newInvoice.efrisInvoice}
+            onChange={handleInputChange}
+            margin="normal"
+            required
+          />
+          <TextField
+            fullWidth
+            label="Status"
+            name="status"
+            select
+            value={newInvoice.status}
+            onChange={handleInputChange}
+            margin="normal"
+          >
+            <MenuItem value="unpaid">Unpaid</MenuItem>
+            <MenuItem value="partially_paid">Partially Paid</MenuItem>
+            <MenuItem value="paid">Paid</MenuItem>
+          </TextField>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenAddDialog(false)}>Cancel</Button>
+          <Button onClick={handleSubmitNewInvoice} color="primary">Add Invoice</Button>
         </DialogActions>
       </Dialog>
     </Box>

@@ -293,12 +293,12 @@ function App() {
                   <ProfitAndLoss />
                 </ProtectedRoute>
               } />
-              <Route path="/reports/payable" element={
+              <Route path="/reports/receivable" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <Receive />
                 </ProtectedRoute>
               } />
-              <Route path="/reports/receivable" element={
+              <Route path="/reports/payable" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <Payable />
                 </ProtectedRoute>
