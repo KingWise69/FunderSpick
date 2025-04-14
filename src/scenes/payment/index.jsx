@@ -40,7 +40,7 @@ const InvoiceDetails = styled(Box)({
 const UgandanInvoice = () => {
   // Sample Ugandan business data
   const company = {
-    name: "Kampala Distributors Ltd",
+    name: "FunderSpick",
     address: "Plot 24, Nkrumah Road, Kampala",
     city: "Kampala",
     phone: "+256 752 123 456",
