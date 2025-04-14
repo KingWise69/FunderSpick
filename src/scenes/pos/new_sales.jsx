@@ -70,7 +70,7 @@ const productData = [
     price: 5000, 
     rating: 5, 
     stock: 60, 
-    image: "/assets/heineken.png", 
+    image: "/assets/Heineken.png", 
     description: "Premium lager beer." 
   },
   { 

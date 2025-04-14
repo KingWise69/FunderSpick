@@ -31,7 +31,7 @@ const beveragesData = [
   { id: 4, name: "Pepsi", type: "Soft Drink", price: 1500, stock: 25, image: "/assets/pepsi.jpg" },
   { id: 5, name: "AFIA JUICE Tropical", type: "Juice", price: 2000, stock: 20, image: "/assets/afia_tropical.jpg" },
   { id: 6, name: "AFIA JUICE Mango", type: "Juice", price: 2000, stock: 15, image: "/assets/afia-juice-tropical-mango-uganda.jpg" },
-  { id: 7, name: "Heineken Beer 330ml", type: "Alcoholic Beverage", price: 5000, stock: 60, image: "/assets/heineken.png" },
+  { id: 7, name: "Heineken Beer 330ml", type: "Alcoholic Beverage", price: 5000, stock: 60, image: "/assets/Heineken.png" },
   { id: 8, name: "Bell Lager", type: "Alcoholic Beverage", price: 4500, stock: 40, image: "/assets/bell.png" },
   { id: 9, name: "Nile Special", type: "Alcoholic Beverage", price: 4700, stock: 35, image: "/assets/nile-special-500ml.png" },
   { id: 10, name: "Club Pilsner", type: "Alcoholic Beverage", price: 4600, stock: 50, image: "/assets/club.png" },
