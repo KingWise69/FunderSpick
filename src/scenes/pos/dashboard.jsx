@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -138,6 +139,7 @@ const generateBudgetData = () => {
 
 const FinancialDashboard = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const [timeFilter, setTimeFilter] = useState('monthly');
   const [financialData, setFinancialData] = useState([]);
   const [accountBalances, setAccountBalances] = useState([]);
@@ -180,6 +182,31 @@ const FinancialDashboard = () => {
         ? ((latest.cashFlow - previous.cashFlow) / previous.cashFlow * 100).toFixed(1)
         : 0
     };
+  };
+
+  // Handle tab navigation
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    switch(tab) {
+      case 'cashflow':
+        navigate('/reports/cash');
+        break;
+      case 'profitability':
+        navigate('/reports/profit-and-loss');
+        break;
+      case 'balances':
+        navigate('/reports/balance-sheet');
+        break;
+      case 'trialbalance':
+        navigate('/reports/trial-balance');
+        break;
+      case 'accountbalance':
+        navigate('/reports/account-balance');
+        break;
+      default:
+        // Stay on dashboard for overview
+        break;
+    }
   };
 
   const summary = calculateSummary();
@@ -295,31 +322,38 @@ const FinancialDashboard = () => {
           </Button>
           <Button 
             variant={activeTab === 'cashflow' ? 'contained' : 'text'} 
-            onClick={() => setActiveTab('cashflow')}
+            onClick={() => handleTabChange('cashflow')}
             startIcon={<ShowChart />}
           >
             Cash Flow
           </Button>
           <Button 
             variant={activeTab === 'profitability' ? 'contained' : 'text'} 
-            onClick={() => setActiveTab('profitability')}
+            onClick={() => handleTabChange('profitability')}
             startIcon={<AttachMoney />}
           >
             Profitability
           </Button>
           <Button 
             variant={activeTab === 'balances' ? 'contained' : 'text'} 
-            onClick={() => setActiveTab('balances')}
+            onClick={() => handleTabChange('balances')}
             startIcon={<AccountBalance />}
           >
             Balances
           </Button>
           <Button 
-            variant={activeTab === 'budget' ? 'contained' : 'text'} 
-            onClick={() => setActiveTab('budget')}
-            startIcon={<PieChart />}
+            variant={activeTab === 'trialbalance' ? 'contained' : 'text'} 
+            onClick={() => handleTabChange('trialbalance')}
+            startIcon={<Receipt />}
           >
-            Budget
+            Trial Balance
+          </Button>
+          <Button 
+            variant={activeTab === 'accountbalance' ? 'contained' : 'text'} 
+            onClick={() => handleTabChange('accountbalance')}
+            startIcon={<AccountBalanceWallet />}
+          >
+            Account Balance
           </Button>
         </Paper>
       </Box>
