@@ -135,7 +135,7 @@ const Sidebar = () => {
 
             
               <Item title="Payment listing" to="/payment-listings" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
-              <Item title="Invoice" to="/payment-listings" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
+              <Item title="Invoice" to="/payment" icon={<DescriptionOutlinedIcon />} selected={selected} setSelected={setSelected} />
              
             </SubMenu>
 
