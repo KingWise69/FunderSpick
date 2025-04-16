@@ -13,6 +13,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Chip,
+  OutlinedInput,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import PersonIcon from "@mui/icons-material/Person";
@@ -94,11 +96,18 @@ const statusColors = {
   "New Joiner": "purple",
 };
 
+// Extract unique categories, sub-categories, and statuses for filters
+const allCategories = [...new Set(initialEmployees.map(emp => emp.category))];
+const allSubCategories = [...new Set(initialEmployees.map(emp => emp.subCategory))];
+const allStatuses = [...new Set(initialEmployees.map(emp => emp.status))];
+
 const EmployeeList = () => {
   const theme = useTheme();
   const [employees, setEmployees] = useState(initialEmployees);
-  const [searchCategory, setSearchCategory] = useState("");
-  const [searchSubCategory, setSearchSubCategory] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedSubCategories, setSelectedSubCategories] = useState([]);
+  const [selectedStatuses, setSelectedStatuses] = useState([]);
   const [openAddDialog, setOpenAddDialog] = useState(false);
   const [newEmployee, setNewEmployee] = useState({
     employeeId: "",
@@ -113,10 +122,26 @@ const EmployeeList = () => {
   });
 
   const filteredEmployees = employees.filter((employee) => {
-    return (
-      (searchCategory ? employee.category.includes(searchCategory) : true) &&
-      (searchSubCategory ? employee.subCategory.includes(searchSubCategory) : true)
-    );
+    // Text search across multiple fields
+    const matchesSearch = searchTerm === "" || 
+      employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.designation.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Category filter
+    const matchesCategory = selectedCategories.length === 0 || 
+      selectedCategories.includes(employee.category);
+
+    // Sub-category filter
+    const matchesSubCategory = selectedSubCategories.length === 0 || 
+      selectedSubCategories.includes(employee.subCategory);
+
+    // Status filter
+    const matchesStatus = selectedStatuses.length === 0 || 
+      selectedStatuses.includes(employee.status);
+
+    return matchesSearch && matchesCategory && matchesSubCategory && matchesStatus;
   });
 
   const handleAddEmployee = () => {
@@ -152,10 +177,10 @@ const EmployeeList = () => {
         <Button
           variant="contained"
           sx={{
-            backgroundColor: statusColors[params.value],
+            backgroundColor: statusColors[params.value] || "grey",
             color: "white",
             textTransform: "none",
-            "&:hover": { backgroundColor: statusColors[params.value] },
+            "&:hover": { backgroundColor: statusColors[params.value] || "grey" },
           }}
         >
           {params.value}
@@ -171,21 +196,104 @@ const EmployeeList = () => {
       </Typography>
 
       {/* Search Filters */}
-      <Box display="flex" gap={2} mt={3}>
+      <Box display="flex" flexDirection="column" gap={2} mt={3}>
+        {/* General Search */}
         <TextField
-          label="Search by Category"
+          label="Search Employees"
           variant="outlined"
           fullWidth
-          value={searchCategory}
-          onChange={(e) => setSearchCategory(e.target.value)}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <TextField
-          label="Search by Sub-category"
-          variant="outlined"
-          fullWidth
-          value={searchSubCategory}
-          onChange={(e) => setSearchSubCategory(e.target.value)}
-        />
+
+        {/* Filter Row */}
+        <Box display="flex" gap={2} flexWrap="wrap">
+          {/* Category Filter */}
+          <FormControl sx={{ minWidth: 200, flex: 1 }}>
+            <InputLabel>Categories</InputLabel>
+            <Select
+              multiple
+              value={selectedCategories}
+              onChange={(e) => setSelectedCategories(e.target.value)}
+              input={<OutlinedInput label="Categories" />}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.map((value) => (
+                    <Chip key={value} label={value} />
+                  ))}
+                </Box>
+              )}
+            >
+              {allCategories.map((category) => (
+                <MenuItem key={category} value={category}>
+                  {category}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Sub-category Filter */}
+          <FormControl sx={{ minWidth: 200, flex: 1 }}>
+            <InputLabel>Sub-categories</InputLabel>
+            <Select
+              multiple
+              value={selectedSubCategories}
+              onChange={(e) => setSelectedSubCategories(e.target.value)}
+              input={<OutlinedInput label="Sub-categories" />}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.map((value) => (
+                    <Chip key={value} label={value} />
+                  ))}
+                </Box>
+              )}
+            >
+              {allSubCategories.map((subCategory) => (
+                <MenuItem key={subCategory} value={subCategory}>
+                  {subCategory}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Status Filter */}
+          <FormControl sx={{ minWidth: 200, flex: 1 }}>
+            <InputLabel>Status</InputLabel>
+            <Select
+              multiple
+              value={selectedStatuses}
+              onChange={(e) => setSelectedStatuses(e.target.value)}
+              input={<OutlinedInput label="Status" />}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.map((value) => (
+                    <Chip 
+                      key={value} 
+                      label={value} 
+                      sx={{ 
+                        backgroundColor: statusColors[value] || 'grey',
+                        color: 'white'
+                      }} 
+                    />
+                  ))}
+                </Box>
+              )}
+            >
+              {allStatuses.map((status) => (
+                <MenuItem key={status} value={status}>
+                  <Box sx={{ 
+                    width: 14, 
+                    height: 14, 
+                    backgroundColor: statusColors[status] || 'grey',
+                    mr: 1,
+                    borderRadius: '3px'
+                  }} />
+                  {status}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
       </Box>
 
       {/* Button Cards */}
@@ -234,7 +342,13 @@ const EmployeeList = () => {
 
       {/* Employee Table */}
       <Box mt={4}>
-        <DataGrid rows={filteredEmployees} columns={columns} pageSize={5} autoHeight />
+        <DataGrid 
+          rows={filteredEmployees} 
+          columns={columns} 
+          pageSize={5} 
+          autoHeight 
+          rowsPerPageOptions={[5, 10, 20]}
+        />
       </Box>
 
       {/* Add Employee Dialog */}
@@ -257,8 +371,9 @@ const EmployeeList = () => {
               value={newEmployee.status}
               onChange={(e) => setNewEmployee({ ...newEmployee, status: e.target.value })}
             >
-              <MenuItem value="Active">Active</MenuItem>
-              <MenuItem value="Inactive">Inactive</MenuItem>
+              {allStatuses.map(status => (
+                <MenuItem key={status} value={status}>{status}</MenuItem>
+              ))}
             </Select>
           </FormControl>
         </DialogContent>
