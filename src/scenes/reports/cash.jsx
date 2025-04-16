@@ -44,6 +44,15 @@ import {
 } from '@mui/icons-material';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, Legend, ResponsiveContainer } from 'recharts';
 
+// Exchange rates (example rates - in a real app, you'd fetch these from an API)
+const exchangeRates = {
+  UGX: 1,
+  USD: 0.00027,
+  EUR: 0.00025,
+  GBP: 0.00021,
+  JPY: 0.042
+};
+
 // Sample data for the cash flow statement
 const cashFlowData = {
   operatingActivities: [
@@ -104,14 +113,6 @@ const cashFlowDistributionData = [
 
 const COLORS = ['#0088FE', '#FF8042', '#00C49F'];
 
-const formatCurrency = (value) => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'UGX' }).format(value);
-};
-
-const formatPercentage = (value) => {
-  return new Intl.NumberFormat('en-US', { style: 'percent', minimumFractionDigits: 2 }).format(value / 100);
-};
-
 const CashFlowStatement = () => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
@@ -121,6 +122,53 @@ const CashFlowStatement = () => {
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
+  };
+
+  const convertCurrency = (value) => {
+    return value * exchangeRates[currency];
+  };
+
+  const formatCurrency = (value) => {
+    const convertedValue = convertCurrency(value);
+    
+    const currencyOptions = {
+      UGX: {
+        style: 'currency',
+        currency: 'UGX',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      },
+      USD: {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      },
+      EUR: {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      },
+      GBP: {
+        style: 'currency',
+        currency: 'GBP',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      },
+      JPY: {
+        style: 'currency',
+        currency: 'JPY',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }
+    };
+
+    return new Intl.NumberFormat('en-US', currencyOptions[currency]).format(convertedValue);
+  };
+
+  const formatPercentage = (value) => {
+    return new Intl.NumberFormat('en-US', { style: 'percent', minimumFractionDigits: 2 }).format(value / 100);
   };
 
   const renderVariance = (value, percentage) => {
@@ -179,6 +227,23 @@ const CashFlowStatement = () => {
     );
   };
 
+  // Convert chart data based on selected currency
+  const getConvertedChartData = () => {
+    return cashFlowTrendData.map(item => ({
+      ...item,
+      operating: convertCurrency(item.operating * 1000),
+      investing: convertCurrency(item.investing * 1000),
+      financing: convertCurrency(item.financing * 1000)
+    }));
+  };
+
+  const getConvertedDistributionData = () => {
+    return cashFlowDistributionData.map(item => ({
+      ...item,
+      value: convertCurrency(item.value * 1000)
+    }));
+  };
+
   return (
     <Box m="20px">
       {/* Header */}
@@ -212,6 +277,7 @@ const CashFlowStatement = () => {
             sx={{ minWidth: 90 }}
           >
             <MenuItem value="UGX">UGX</MenuItem>
+            <MenuItem value="USD">USD</MenuItem>
             <MenuItem value="EUR">EUR</MenuItem>
             <MenuItem value="GBP">GBP</MenuItem>
             <MenuItem value="JPY">JPY</MenuItem>
@@ -299,11 +365,14 @@ const CashFlowStatement = () => {
                 </Box>
               </Box>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={cashFlowTrendData}>
+                <LineChart data={getConvertedChartData()}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <ChartTooltip />
+                  <ChartTooltip 
+                    formatter={(value) => formatCurrency(value)}
+                    labelFormatter={(label) => `Month: ${label}`}
+                  />
                   <Legend />
                   <Line type="monotone" dataKey="operating" stroke="#0088FE" strokeWidth={2} name="Operating" />
                   <Line type="monotone" dataKey="investing" stroke="#FF8042" strokeWidth={2} name="Investing" />
@@ -322,7 +391,7 @@ const CashFlowStatement = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={cashFlowDistributionData}
+                    data={getConvertedDistributionData()}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
@@ -336,7 +405,7 @@ const CashFlowStatement = () => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <ChartTooltip formatter={(value) => formatCurrency(value * 1000)} />
+                  <ChartTooltip formatter={(value) => formatCurrency(value)} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
