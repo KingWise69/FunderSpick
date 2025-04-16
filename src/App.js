@@ -27,13 +27,14 @@ import Expense from "./scenes/reports/expense";
 import IncomeVsExpenses from "./scenes/reports/income-vs-expenses";
 import TrialBalance from "./scenes/reports/trial-balance";
 import BalanceSheet from "./scenes/reports/balance-sheet";
-import Transaction from "./scenes/reports/transaction";
+
 import AccountBalance from "./scenes/reports/account-balance";
 import ProfitAndLoss from "./scenes/reports/profit-and-loss";
 import Receipts from "./scenes/pos/receipts";
 import Cash from "./scenes/reports/cash";
 import Payable from "./scenes/reports/payable";
 import Receive from "./scenes/reports/receivable";
+import ERP from "./scenes/reports/erp";
 
 // Ledger
 import LedgerList from "./scenes/ledger/index";
@@ -304,6 +305,11 @@ function App() {
                 </ProtectedRoute>
               } />
               
+              <Route path="/reports/erp" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <ERP />
+                </ProtectedRoute>
+              } />
               {/* Bills */}
               <Route path="/bills/manage" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
