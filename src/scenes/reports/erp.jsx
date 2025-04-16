@@ -433,7 +433,7 @@ const ERPDashboard = () => {
                 {activeModule.charAt(0).toUpperCase() + activeModule.slice(1)} Module
               </Typography>
               <Typography color="textSecondary">
-                Detailed reports and analytics for this module would be displayed here.
+                Detailed reports and analytics for this module would be displayed here when the full system is setup.
               </Typography>
             </CardContent>
           </Card>
