@@ -5,6 +5,7 @@ import Sidebar from "./scenes/global/Sidebar";
 import Pos_Sidebar from "./scenes/global/Pos_Sidebar";
 import Dashboard from "./scenes/dashboard";
 import Payment from "./scenes/payment";
+import ReceiptSale from "./scenes/payment/receipt";
 import Listings from "./scenes/payment-listings";
 import ManageBill from "./scenes/bills/manage";
 import CreateBill from "./scenes/bills/create";
@@ -197,6 +198,7 @@ function App() {
                   <Payment />
                 </ProtectedRoute>
               } />
+              
               <Route path="/contacts" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <Contacts />
@@ -308,6 +310,11 @@ function App() {
               <Route path="/reports/erp" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <ERP />
+                </ProtectedRoute>
+              } />
+              <Route path="/payment/receipt" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <ReceiptSale />
                 </ProtectedRoute>
               } />
               {/* Bills */}

@@ -1,82 +1,140 @@
-import React, { useState } from 'react';
-import { format } from 'date-fns';
+import React, { useState, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import './InvoiceApp.css';
 
-const SalesReceipt = () => {
-  // Sales receipt state
-  const [receipt, setReceipt] = useState({
-    receiptNumber: 'SR-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000),
-    date: new Date(),
-    customer: null,
-    paymentMethod: 'Cash',
-    checkNumber: '',
-    depositTo: 'Undeposited Funds',
-    items: [
-      {
-        id: 1,
+const InvoiceApp = () => {
+  // State for managing invoices, customers, and products
+  const [invoices, setInvoices] = useState([]);
+  const [customers, setCustomers] = useState([
+    { id: '1', name: 'Acme Corp', email: 'contact@acme.com', address: '123 Main St, Anytown, USA' },
+    { id: '2', name: 'Globex Inc', email: 'accounts@globex.com', address: '456 Oak Ave, Somewhere, USA' }
+  ]);
+  const [products, setProducts] = useState([
+    { id: '1', name: 'Web Design', description: 'Custom website design', price: 1200, taxable: true },
+    { id: '2', name: 'SEO Service', description: 'Search engine optimization', price: 800, taxable: true },
+    { id: '3', name: 'Consulting', description: 'Business consulting hour', price: 150, taxable: false }
+  ]);
+  
+  // State for the current invoice being edited
+  const [currentInvoice, setCurrentInvoice] = useState({
+    id: '',
+    invoiceNumber: '',
+    date: new Date().toISOString().split('T')[0],
+    dueDate: '',
+    customer: '',
+    items: [],
+    subtotal: 0,
+    tax: 0,
+    discount: 0,
+    shipping: 0,
+    total: 0,
+    notes: '',
+    terms: 'Payment due within 30 days',
+    status: 'draft',
+    paid: false
+  });
+  
+  const [showInvoiceForm, setShowInvoiceForm] = useState(false);
+  const [viewMode, setViewMode] = useState('list'); // 'list', 'form', 'preview'
+  const [searchTerm, setSearchTerm] = useState('');
+  const [companyInfo, setCompanyInfo] = useState({
+    name: 'Your Company',
+    address: '123 Business Rd, City, State ZIP',
+    email: 'billing@yourcompany.com',
+    phone: '(555) 123-4567',
+    logo: ''
+  });
+
+  // Calculate invoice totals whenever items change
+  useEffect(() => {
+    const subtotal = currentInvoice.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const taxableAmount = currentInvoice.items.reduce((sum, item) => 
+      item.taxable ? sum + (item.price * item.quantity) : sum, 0);
+    const tax = taxableAmount * 0.08; // Assuming 8% tax rate
+    const total = subtotal + tax + currentInvoice.shipping - currentInvoice.discount;
+    
+    setCurrentInvoice(prev => ({
+      ...prev,
+      subtotal,
+      tax,
+      total
+    }));
+  }, [currentInvoice.items, currentInvoice.shipping, currentInvoice.discount]);
+
+  // Generate a new invoice number
+  const generateInvoiceNumber = () => {
+    const prefix = 'INV-';
+    const year = new Date().getFullYear().toString().slice(-2);
+    const month = (new Date().getMonth() + 1).toString().padStart(2, '0');
+    const count = invoices.filter(inv => inv.date.includes(new Date().getFullYear() + '-' + month)).length + 1;
+    return `${prefix}${year}${month}-${count.toString().padStart(3, '0')}`;
+  };
+
+  // Handle creating a new invoice
+  const handleNewInvoice = () => {
+    setCurrentInvoice({
+      id: uuidv4(),
+      invoiceNumber: generateInvoiceNumber(),
+      date: new Date().toISOString().split('T')[0],
+      dueDate: '',
+      customer: '',
+      items: [],
+      subtotal: 0,
+      tax: 0,
+      discount: 0,
+      shipping: 0,
+      total: 0,
+      notes: '',
+      terms: 'Payment due within 30 days',
+      status: 'draft',
+      paid: false
+    });
+    setViewMode('form');
+  };
+
+  // Handle editing an existing invoice
+  const handleEditInvoice = (invoice) => {
+    setCurrentInvoice(invoice);
+    setViewMode('form');
+  };
+
+  // Handle saving an invoice
+  const handleSaveInvoice = () => {
+    if (currentInvoice.id) {
+      // Update existing invoice
+      setInvoices(prev => 
+        prev.map(inv => inv.id === currentInvoice.id ? currentInvoice : inv)
+      );
+    } else {
+      // Add new invoice
+      setInvoices(prev => [...prev, currentInvoice]);
+    }
+    setViewMode('list');
+  };
+
+  // Handle deleting an invoice
+  const handleDeleteInvoice = (id) => {
+    setInvoices(prev => prev.filter(inv => inv.id !== id));
+  };
+
+  // Handle adding a new item to the invoice
+  const handleAddItem = () => {
+    setCurrentInvoice(prev => ({
+      ...prev,
+      items: [...prev.items, {
+        id: uuidv4(),
         product: '',
         description: '',
         quantity: 1,
-        rate: 0,
-        tax: 0.18, // 18% VAT
-      }
-    ],
-    emailOptions: {
-      send: false,
-      email: '',
-      subject: 'Your Sales Receipt from Our Business',
-      message: 'Thank you for your purchase! Attached is your sales receipt.'
-    },
-    customPaymentTypes: ['Cash', 'Check', 'Credit Card', 'Mobile Money']
-  });
-
-  // Sample customer data
-  const [customers] = useState([
-    { id: 1, name: 'John Doe', email: 'john@example.com' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com' },
-    { id: 3, name: 'Acme Corp', email: 'accounts@acme.com' }
-  ]);
-
-  // Sample products
-  const [products] = useState([
-    { id: 1, name: 'Web Design', description: 'Professional website design', price: 500000 },
-    { id: 2, name: 'Consulting', description: 'Business consulting hour', price: 150000 },
-    { id: 3, name: 'Software License', description: 'Annual software subscription', price: 1200000 }
-  ]);
-
-  // Sample deposit accounts
-  const [depositAccounts] = useState([
-    'Undeposited Funds',
-    'Stanbic Bank - 123456789',
-    'Centenary Bank - 987654321',
-    'Mobile Money - 0712345678'
-  ]);
-
-  // Calculate totals
-  const calculateSubtotal = () => {
-    return receipt.items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
+        price: 0,
+        taxable: false
+      }]
+    }));
   };
 
-  const calculateTax = () => {
-    return receipt.items.reduce((sum, item) => sum + (item.quantity * item.rate * item.tax), 0);
-  };
-
-  const calculateTotal = () => {
-    return calculateSubtotal() + calculateTax();
-  };
-
-  // Format currency (UGX)
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-UG', {
-      style: 'currency',
-      currency: 'UGX',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
-
-  // Handle item changes
-  const handleItemChange = (id, field, value) => {
-    setReceipt(prev => ({
+  // Handle updating an item in the invoice
+  const handleUpdateItem = (id, field, value) => {
+    setCurrentInvoice(prev => ({
       ...prev,
       items: prev.items.map(item => 
         item.id === id ? { ...item, [field]: value } : item
@@ -84,544 +142,518 @@ const SalesReceipt = () => {
     }));
   };
 
-  // Handle product selection
-  const handleProductSelect = (id, productId) => {
-    const selectedProduct = products.find(p => p.id === parseInt(productId));
-    if (selectedProduct) {
-      handleItemChange(id, 'product', selectedProduct.name);
-      handleItemChange(id, 'description', selectedProduct.description);
-      handleItemChange(id, 'rate', selectedProduct.price);
-    }
-  };
-
-  // Add new item
-  const addItem = () => {
-    setReceipt(prev => ({
+  // Handle removing an item from the invoice
+  const handleRemoveItem = (id) => {
+    setCurrentInvoice(prev => ({
       ...prev,
-      items: [
-        ...prev.items,
-        {
-          id: prev.items.length + 1,
-          product: '',
-          description: '',
-          quantity: 1,
-          rate: 0,
-          tax: 0.18,
-        }
-      ]
+      items: prev.items.filter(item => item.id !== id)
     }));
   };
 
-  // Remove item
-  const removeItem = (id) => {
-    if (receipt.items.length > 1) {
-      setReceipt(prev => ({
-        ...prev,
-        items: prev.items.filter(item => item.id !== id)
-      }));
+  // Handle selecting a product for an item
+  const handleSelectProduct = (itemId, productId) => {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      handleUpdateItem(itemId, 'product', product.name);
+      handleUpdateItem(itemId, 'description', product.description);
+      handleUpdateItem(itemId, 'price', product.price);
+      handleUpdateItem(itemId, 'taxable', product.taxable);
     }
   };
 
-  // Add new payment method
-  const addPaymentMethod = () => {
-    const newMethod = prompt('Enter new payment method:');
-    if (newMethod && !receipt.customPaymentTypes.includes(newMethod)) {
-      setReceipt(prev => ({
-        ...prev,
-        customPaymentTypes: [...prev.customPaymentTypes, newMethod]
-      }));
-    }
+  // Filter invoices based on search term
+  const filteredInvoices = invoices.filter(invoice => 
+    invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (invoice.customer && customers.find(c => c.id === invoice.customer)?.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  // Get customer name by ID
+  const getCustomerName = (id) => {
+    const customer = customers.find(c => c.id === id);
+    return customer ? customer.name : 'Unknown Customer';
   };
 
-  // Handle form submission
-  const handleSubmit = (action) => {
-    // In a real app, this would save to your backend
-    console.log('Sales Receipt:', receipt);
-    
-    if (action === 'saveAndSend') {
-      console.log('Emailing receipt to:', receipt.customer?.email || receipt.emailOptions.email);
-      alert(`Receipt ${receipt.receiptNumber} saved and emailed successfully!`);
-    } else {
-      alert(`Receipt ${receipt.receiptNumber} saved successfully!`);
-    }
+  // Format currency
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'UGX' }).format(amount);
   };
 
   return (
-    <div className="sales-receipt-container" style={styles.container}>
-      <h1 style={styles.header}>Create Sales Receipt</h1>
-      
-      {/* Basic Information */}
-      <div style={styles.section}>
-        <div style={styles.formRow}>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Receipt #</label>
-            <input 
-              type="text" 
-              value={receipt.receiptNumber}
-              onChange={(e) => setReceipt({...receipt, receiptNumber: e.target.value})}
-              style={styles.input}
-            />
-          </div>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Date</label>
-            <input 
-              type="date" 
-              value={format(receipt.date, 'yyyy-MM-dd')}
-              onChange={(e) => setReceipt({...receipt, date: new Date(e.target.value)})}
-              style={styles.input}
-            />
-          </div>
+    <div className="invoice-app">
+      <header className="app-header">
+        <h1>Invoice Management</h1>
+        <div className="company-info">
+          <h2>{companyInfo.name}</h2>
+          <p>{companyInfo.address}</p>
+          <p>{companyInfo.email} | {companyInfo.phone}</p>
         </div>
-        
-        <div style={styles.formRow}>
-          <div style={{...styles.formGroup, flex: 2}}>
-            <label style={styles.label}>Customer (Optional)</label>
-            <select
-              value={receipt.customer?.id || ''}
-              onChange={(e) => {
-                const selectedCustomer = customers.find(c => c.id === parseInt(e.target.value));
-                setReceipt({
-                  ...receipt, 
-                  customer: selectedCustomer || null,
-                  emailOptions: {
-                    ...receipt.emailOptions,
-                    email: selectedCustomer?.email || ''
-                  }
-                });
-              }}
-              style={styles.input}
-            >
-              <option value="">Select Customer</option>
-              {customers.map(customer => (
-                <option key={customer.id} value={customer.id}>{customer.name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-        
-        {!receipt.customer && (
-          <div style={styles.formRow}>
-            <div style={{...styles.formGroup, flex: 2}}>
-              <label style={styles.label}>Customer Email (Optional)</label>
-              <input 
-                type="email" 
-                value={receipt.emailOptions.email}
-                onChange={(e) => setReceipt({
-                  ...receipt,
-                  emailOptions: {...receipt.emailOptions, email: e.target.value}
-                })}
-                style={styles.input}
-                placeholder="Enter email if you want to send receipt"
-              />
+      </header>
+
+      <div className="app-container">
+        {viewMode === 'list' && (
+          <div className="invoice-list">
+            <div className="toolbar">
+              <button className="btn-primary" onClick={handleNewInvoice}>
+                <i className="fas fa-plus"></i> New Invoice
+              </button>
+              <div className="search-box">
+                <input
+                  type="text"
+                  placeholder="Search invoices..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <i className="fas fa-search"></i>
+              </div>
+            </div>
+
+            <div className="invoice-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Invoice #</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredInvoices.length > 0 ? (
+                    filteredInvoices.map(invoice => (
+                      <tr key={invoice.id}>
+                        <td>{invoice.invoiceNumber}</td>
+                        <td>{invoice.date}</td>
+                        <td>{getCustomerName(invoice.customer)}</td>
+                        <td>{formatCurrency(invoice.total)}</td>
+                        <td>
+                          <span className={`status-badge ${invoice.status}`}>
+                            {invoice.status}
+                          </span>
+                        </td>
+                        <td>
+                          <button 
+                            className="btn-edit"
+                            onClick={() => handleEditInvoice(invoice)}
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button 
+                            className="btn-delete"
+                            onClick={() => handleDeleteInvoice(invoice.id)}
+                          >
+                            <i className="fas fa-trash"></i>
+                          </button>
+                          <button 
+                            className="btn-view"
+                            onClick={() => {
+                              setCurrentInvoice(invoice);
+                              setViewMode('preview');
+                            }}
+                          >
+                            <i className="fas fa-eye"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="no-invoices">
+                        No invoices found. Create your first invoice!
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
-      </div>
-      
-      {/* Payment Information */}
-      <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>Payment Information</h2>
-        <div style={styles.formRow}>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Payment Method</label>
-            <div style={{display: 'flex'}}>
-              <select
-                value={receipt.paymentMethod}
-                onChange={(e) => setReceipt({...receipt, paymentMethod: e.target.value})}
-                style={styles.input}
-              >
-                {receipt.customPaymentTypes.map(method => (
-                  <option key={method} value={method}>{method}</option>
-                ))}
-              </select>
-              <button 
-                onClick={addPaymentMethod}
-                style={styles.addMethodButton}
-              >
-                Add New
+
+        {viewMode === 'form' && (
+          <div className="invoice-form">
+            <div className="form-header">
+              <h2>
+                {currentInvoice.id ? 'Edit Invoice' : 'Create New Invoice'}
+                <span className="invoice-number">{currentInvoice.invoiceNumber}</span>
+              </h2>
+              <div className="form-actions">
+                <button className="btn-secondary" onClick={() => setViewMode('list')}>
+                  Cancel
+                </button>
+                <button 
+                  className="btn-primary" 
+                  onClick={handleSaveInvoice}
+                  disabled={!currentInvoice.customer || currentInvoice.items.length === 0}
+                >
+                  Save Invoice
+                </button>
+                <button 
+                  className="btn-preview"
+                  onClick={() => setViewMode('preview')}
+                >
+                  Preview
+                </button>
+              </div>
+            </div>
+
+            <div className="form-grid">
+              <div className="form-section customer-info">
+                <h3>Bill To</h3>
+                <select
+                  value={currentInvoice.customer}
+                  onChange={(e) => setCurrentInvoice({...currentInvoice, customer: e.target.value})}
+                  required
+                >
+                  <option value="">Select Customer</option>
+                  {customers.map(customer => (
+                    <option key={customer.id} value={customer.id}>
+                      {customer.name}
+                    </option>
+                  ))}
+                </select>
+                {currentInvoice.customer && (
+                  <div className="customer-details">
+                    <p>{customers.find(c => c.id === currentInvoice.customer)?.address}</p>
+                    <p>{customers.find(c => c.id === currentInvoice.customer)?.email}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="form-section invoice-info">
+                <h3>Invoice Details</h3>
+                <div className="form-group">
+                  <label>Date</label>
+                  <input
+                    type="date"
+                    value={currentInvoice.date}
+                    onChange={(e) => setCurrentInvoice({...currentInvoice, date: e.target.value})}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Due Date</label>
+                  <input
+                    type="date"
+                    value={currentInvoice.dueDate}
+                    onChange={(e) => setCurrentInvoice({...currentInvoice, dueDate: e.target.value})}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Status</label>
+                  <select
+                    value={currentInvoice.status}
+                    onChange={(e) => setCurrentInvoice({...currentInvoice, status: e.target.value})}
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="sent">Sent</option>
+                    <option value="paid">Paid</option>
+                    <option value="overdue">Overdue</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="form-section items-section">
+              <h3>Items</h3>
+              <table className="items-table">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Description</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Taxable</th>
+                    <th>Amount</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentInvoice.items.map(item => (
+                    <tr key={item.id}>
+                      <td>
+                        <select
+                          value={products.find(p => p.name === item.product)?.id || ''}
+                          onChange={(e) => handleSelectProduct(item.id, e.target.value)}
+                        >
+                          <option value="">Select Product</option>
+                          {products.map(product => (
+                            <option key={product.id} value={product.id}>
+                              {product.name}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          value={item.description}
+                          onChange={(e) => handleUpdateItem(item.id, 'description', e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) => handleUpdateItem(item.id, 'quantity', parseInt(e.target.value) || 1)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={item.price}
+                          onChange={(e) => handleUpdateItem(item.id, 'price', parseFloat(e.target.value) || 0)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={item.taxable}
+                          onChange={(e) => handleUpdateItem(item.id, 'taxable', e.target.checked)}
+                        />
+                      </td>
+                      <td>{formatCurrency(item.price * item.quantity)}</td>
+                      <td>
+                        <button 
+                          className="btn-icon"
+                          onClick={() => handleRemoveItem(item.id)}
+                        >
+                          <i className="fas fa-times"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <button className="btn-add-item" onClick={handleAddItem}>
+                <i className="fas fa-plus"></i> Add Item
               </button>
             </div>
-          </div>
-          
-          {receipt.paymentMethod === 'Check' && (
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Check Number</label>
-              <input 
-                type="text" 
-                value={receipt.checkNumber}
-                onChange={(e) => setReceipt({...receipt, checkNumber: e.target.value})}
-                style={styles.input}
-              />
-            </div>
-          )}
-        </div>
-        
-        <div style={styles.formRow}>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Deposit To</label>
-            <select
-              value={receipt.depositTo}
-              onChange={(e) => setReceipt({...receipt, depositTo: e.target.value})}
-              style={styles.input}
-            >
-              {depositAccounts.map(account => (
-                <option key={account} value={account}>{account}</option>
-              ))}
-            </select>
-            <p style={styles.helpText}>
-              {receipt.depositTo === 'Undeposited Funds' 
-                ? 'Use "Undeposited Funds" to group payments for later deposit'
-                : 'Payment will be recorded directly in this account'}
-            </p>
-          </div>
-        </div>
-      </div>
-      
-      {/* Products/Services */}
-      <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>Products/Services</h2>
-        <table style={styles.itemsTable}>
-          <thead>
-            <tr style={styles.tableHeaderRow}>
-              <th style={styles.tableHeader}>Product/Service</th>
-              <th style={styles.tableHeader}>Description</th>
-              <th style={styles.tableHeader}>Qty</th>
-              <th style={styles.tableHeader}>Rate (UGX)</th>
-              <th style={styles.tableHeader}>Tax</th>
-              <th style={styles.tableHeader}>Amount (UGX)</th>
-              <th style={styles.tableHeader}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {receipt.items.map((item) => (
-              <tr key={item.id} style={styles.tableRow}>
-                <td style={styles.tableCell}>
-                  <select
-                    value={products.find(p => p.name === item.product)?.id || ''}
-                    onChange={(e) => handleProductSelect(item.id, e.target.value)}
-                    style={styles.input}
-                  >
-                    <option value="">Select Product</option>
-                    {products.map(product => (
-                      <option key={product.id} value={product.id}>{product.name}</option>
-                    ))}
-                  </select>
-                </td>
-                <td style={styles.tableCell}>
-                  <input
-                    type="text"
-                    value={item.description}
-                    onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
-                    style={styles.input}
-                  />
-                </td>
-                <td style={styles.tableCell}>
-                  <input
-                    type="number"
-                    min="1"
-                    value={item.quantity}
-                    onChange={(e) => handleItemChange(item.id, 'quantity', parseInt(e.target.value) || 0)}
-                    style={styles.input}
-                  />
-                </td>
-                <td style={styles.tableCell}>
+
+            <div className="form-grid">
+              <div className="form-section notes-section">
+                <h3>Notes & Terms</h3>
+                <textarea
+                  placeholder="Notes to customer"
+                  value={currentInvoice.notes}
+                  onChange={(e) => setCurrentInvoice({...currentInvoice, notes: e.target.value})}
+                />
+                <textarea
+                  placeholder="Terms and conditions"
+                  value={currentInvoice.terms}
+                  onChange={(e) => setCurrentInvoice({...currentInvoice, terms: e.target.value})}
+                />
+              </div>
+
+              <div className="form-section totals-section">
+                <h3>Summary</h3>
+                <div className="summary-row">
+                  <span>Subtotal:</span>
+                  <span>{formatCurrency(currentInvoice.subtotal)}</span>
+                </div>
+                <div className="summary-row">
+                  <span>Tax (8%):</span>
+                  <span>{formatCurrency(currentInvoice.tax)}</span>
+                </div>
+                <div className="summary-row">
+                  <label>Discount:</label>
                   <input
                     type="number"
                     min="0"
-                    value={item.rate}
-                    onChange={(e) => handleItemChange(item.id, 'rate', parseInt(e.target.value) || 0)}
-                    style={styles.input}
+                    step="0.01"
+                    value={currentInvoice.discount}
+                    onChange={(e) => setCurrentInvoice({
+                      ...currentInvoice,
+                      discount: parseFloat(e.target.value) || 0
+                    })}
                   />
-                </td>
-                <td style={styles.tableCell}>
-                  <select
-                    value={item.tax}
-                    onChange={(e) => handleItemChange(item.id, 'tax', parseFloat(e.target.value))}
-                    style={styles.input}
-                  >
-                    <option value="0">0%</option>
-                    <option value="0.18">18% VAT</option>
-                  </select>
-                </td>
-                <td style={styles.tableCell}>
-                  {formatCurrency(item.quantity * item.rate * (1 + item.tax))}
-                </td>
-                <td style={styles.tableCell}>
-                  <button 
-                    onClick={() => removeItem(item.id)}
-                    style={styles.removeButton}
-                  >
-                    ×
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <button onClick={addItem} style={styles.addButton}>
-          + Add Item
-        </button>
-      </div>
-      
-      {/* Totals */}
-      <div style={styles.totalsSection}>
-        <div style={styles.totalsWrapper}>
-          <div style={styles.totalsRow}>
-            <span style={styles.totalsLabel}>Subtotal:</span>
-            <span style={styles.totalsValue}>{formatCurrency(calculateSubtotal())}</span>
-          </div>
-          <div style={styles.totalsRow}>
-            <span style={styles.totalsLabel}>Tax (18%):</span>
-            <span style={styles.totalsValue}>{formatCurrency(calculateTax())}</span>
-          </div>
-          <div style={{ ...styles.totalsRow, ...styles.totalRow }}>
-            <span style={styles.totalsLabel}>Total:</span>
-            <span style={styles.totalsValue}>{formatCurrency(calculateTotal())}</span>
-          </div>
-        </div>
-      </div>
-      
-      {/* Email Options */}
-      {(receipt.customer || receipt.emailOptions.email) && (
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>Email Options</h2>
-          <div style={styles.formRow}>
-            <div style={{...styles.formGroup, flex: 1}}>
-              <label style={styles.label}>
-                <input
-                  type="checkbox"
-                  checked={receipt.emailOptions.send}
-                  onChange={(e) => setReceipt({
-                    ...receipt,
-                    emailOptions: {...receipt.emailOptions, send: e.target.checked}
-                  })}
-                  style={{marginRight: '10px'}}
-                />
-                Send receipt to customer
-              </label>
+                </div>
+                <div className="summary-row">
+                  <label>Shipping:</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={currentInvoice.shipping}
+                    onChange={(e) => setCurrentInvoice({
+                      ...currentInvoice,
+                      shipping: parseFloat(e.target.value) || 0
+                    })}
+                  />
+                </div>
+                <div className="summary-row total">
+                  <span>Total:</span>
+                  <span>{formatCurrency(currentInvoice.total)}</span>
+                </div>
+              </div>
             </div>
           </div>
-          
-          {receipt.emailOptions.send && (
-            <>
-              <div style={styles.formRow}>
-                <div style={{...styles.formGroup, flex: 1}}>
-                  <label style={styles.label}>Email Subject</label>
-                  <input
-                    type="text"
-                    value={receipt.emailOptions.subject}
-                    onChange={(e) => setReceipt({
-                      ...receipt,
-                      emailOptions: {...receipt.emailOptions, subject: e.target.value}
-                    })}
-                    style={styles.input}
-                  />
-                </div>
-              </div>
-              
-              <div style={styles.formRow}>
-                <div style={{...styles.formGroup, flex: 1}}>
-                  <label style={styles.label}>Message</label>
-                  <textarea
-                    value={receipt.emailOptions.message}
-                    onChange={(e) => setReceipt({
-                      ...receipt,
-                      emailOptions: {...receipt.emailOptions, message: e.target.value}
-                    })}
-                    style={{...styles.input, height: '80px'}}
-                  />
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-      
-      {/* Actions */}
-      <div style={styles.actionsSection}>
-        <button 
-          onClick={() => handleSubmit('save')}
-          style={styles.saveButton}
-        >
-          Save
-        </button>
-        {(receipt.customer || receipt.emailOptions.email) && (
-          <button 
-            onClick={() => handleSubmit('saveAndSend')}
-            style={styles.saveAndSendButton}
-          >
-            Save and Send
-          </button>
         )}
-        <button style={styles.clearButton}>Clear</button>
+
+        {viewMode === 'preview' && (
+          <div className="invoice-preview">
+            <div className="preview-actions">
+              <button className="btn-secondary" onClick={() => setViewMode('list')}>
+                Back to List
+              </button>
+              {currentInvoice.status === 'draft' && (
+                <button 
+                  className="btn-edit"
+                  onClick={() => setViewMode('form')}
+                >
+                  Edit Invoice
+                </button>
+              )}
+              <button className="btn-primary">
+                <i className="fas fa-envelope"></i> Send
+              </button>
+              <button className="btn-secondary">
+                <i className="fas fa-print"></i> Print
+              </button>
+              <button className="btn-secondary">
+                <i className="fas fa-download"></i> Download PDF
+              </button>
+            </div>
+
+            <div className="invoice-document">
+              <div className="invoice-header">
+                <div className="company-logo">
+                  {companyInfo.logo ? (
+                    <img src={companyInfo.logo} alt="Company Logo" />
+                  ) : (
+                    <h2>{companyInfo.name}</h2>
+                  )}
+                </div>
+                <div className="invoice-title">
+                  <h1>INVOICE</h1>
+                  <div className="invoice-meta">
+                    <div className="meta-row">
+                      <span>Invoice #:</span>
+                      <span>{currentInvoice.invoiceNumber}</span>
+                    </div>
+                    <div className="meta-row">
+                      <span>Date:</span>
+                      <span>{currentInvoice.date}</span>
+                    </div>
+                    <div className="meta-row">
+                      <span>Due Date:</span>
+                      <span>{currentInvoice.dueDate}</span>
+                    </div>
+                    <div className="meta-row">
+                      <span>Status:</span>
+                      <span className={`status-badge ${currentInvoice.status}`}>
+                        {currentInvoice.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="invoice-parties">
+                <div className="company-info">
+                  <h3>{companyInfo.name}</h3>
+                  <p>{companyInfo.address}</p>
+                  <p>{companyInfo.email}</p>
+                  <p>{companyInfo.phone}</p>
+                </div>
+                <div className="customer-info">
+                  <h3>Bill To:</h3>
+                  {currentInvoice.customer ? (
+                    <>
+                      <h4>{getCustomerName(currentInvoice.customer)}</h4>
+                      <p>{customers.find(c => c.id === currentInvoice.customer)?.address}</p>
+                      <p>{customers.find(c => c.id === currentInvoice.customer)?.email}</p>
+                    </>
+                  ) : (
+                    <p>No customer selected</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="invoice-items">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Description</th>
+                      <th>Qty</th>
+                      <th>Price</th>
+                      <th>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentInvoice.items.length > 0 ? (
+                      currentInvoice.items.map((item, index) => (
+                        <tr key={index}>
+                          <td>{item.product}</td>
+                          <td>{item.description}</td>
+                          <td>{item.quantity}</td>
+                          <td>{formatCurrency(item.price)}</td>
+                          <td>{formatCurrency(item.price * item.quantity)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="5" className="no-items">No items added</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="invoice-totals">
+                <div className="totals-grid">
+                  <div className="notes-section">
+                    <h4>Notes</h4>
+                    <p>{currentInvoice.notes || 'No notes provided'}</p>
+                    <h4>Terms</h4>
+                    <p>{currentInvoice.terms}</p>
+                  </div>
+                  <div className="amounts-section">
+                    <div className="amount-row">
+                      <span>Subtotal:</span>
+                      <span>{formatCurrency(currentInvoice.subtotal)}</span>
+                    </div>
+                    <div className="amount-row">
+                      <span>Tax:</span>
+                      <span>{formatCurrency(currentInvoice.tax)}</span>
+                    </div>
+                    {currentInvoice.discount > 0 && (
+                      <div className="amount-row">
+                        <span>Discount:</span>
+                        <span>-{formatCurrency(currentInvoice.discount)}</span>
+                      </div>
+                    )}
+                    {currentInvoice.shipping > 0 && (
+                      <div className="amount-row">
+                        <span>Shipping:</span>
+                        <span>{formatCurrency(currentInvoice.shipping)}</span>
+                      </div>
+                    )}
+                    <div className="amount-row total">
+                      <span>Total:</span>
+                      <span>{formatCurrency(currentInvoice.total)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="invoice-footer">
+                <p>Thank you for your business!</p>
+                <div className="payment-options">
+                  <h4>Payment Options</h4>
+                  <p>Bank Transfer | Credit Card | PayPal</p>
+                  <p>Make checks payable to: {companyInfo.name}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-// Styles
-const styles = {
-  container: {
-    maxWidth: '900px',
-    margin: '0 auto',
-    padding: '20px',
-    fontFamily: 'Arial, sans-serif',
-    color: '#333',
-    backgroundColor: '#fff',
-    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-  },
-  header: {
-    color: '#2c3e50',
-    borderBottom: '1px solid #eee',
-    paddingBottom: '10px',
-    marginBottom: '20px',
-  },
-  section: {
-    marginBottom: '30px',
-    paddingBottom: '20px',
-    borderBottom: '1px solid #eee',
-  },
-  sectionTitle: {
-    color: '#2c3e50',
-    fontSize: '18px',
-    marginBottom: '15px',
-  },
-  formRow: {
-    display: 'flex',
-    gap: '20px',
-    marginBottom: '15px',
-  },
-  formGroup: {
-    flex: 1,
-  },
-  label: {
-    display: 'block',
-    marginBottom: '5px',
-    fontWeight: 'bold',
-    fontSize: '14px',
-  },
-  input: {
-    width: '100%',
-    padding: '8px',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '14px',
-  },
-  helpText: {
-    margin: '5px 0 0',
-    fontSize: '12px',
-    color: '#666',
-  },
-  addMethodButton: {
-    background: '#f8f9fa',
-    border: '1px solid #ddd',
-    borderRadius: '0 4px 4px 0',
-    padding: '8px 12px',
-    cursor: 'pointer',
-    marginLeft: '-1px',
-  },
-  itemsTable: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    marginBottom: '15px',
-  },
-  tableHeaderRow: {
-    backgroundColor: '#f8f9fa',
-  },
-  tableHeader: {
-    padding: '10px',
-    textAlign: 'left',
-    fontSize: '14px',
-    fontWeight: 'bold',
-    borderBottom: '1px solid #ddd',
-  },
-  tableRow: {
-    borderBottom: '1px solid #eee',
-  },
-  tableCell: {
-    padding: '10px',
-    verticalAlign: 'middle',
-  },
-  removeButton: {
-    background: '#e74c3c',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '50%',
-    width: '25px',
-    height: '25px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    lineHeight: '25px',
-  },
-  addButton: {
-    background: '#3498db',
-    color: '#fff',
-    border: 'none',
-    padding: '8px 15px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '14px',
-  },
-  totalsSection: {
-    marginBottom: '30px',
-    textAlign: 'right',
-  },
-  totalsWrapper: {
-    display: 'inline-block',
-    width: '300px',
-  },
-  totalsRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginBottom: '5px',
-  },
-  totalsLabel: {
-    fontWeight: 'bold',
-  },
-  totalsValue: {
-    minWidth: '120px',
-    textAlign: 'right',
-  },
-  totalRow: {
-    borderTop: '1px solid #333',
-    paddingTop: '10px',
-    marginTop: '10px',
-    fontSize: '18px',
-    fontWeight: 'bold',
-  },
-  actionsSection: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: '10px',
-    marginTop: '20px',
-  },
-  saveButton: {
-    background: '#3498db',
-    color: '#fff',
-    border: 'none',
-    padding: '10px 20px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '14px',
-  },
-  saveAndSendButton: {
-    background: '#2ecc71',
-    color: '#fff',
-    border: 'none',
-    padding: '10px 20px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '14px',
-  },
-  clearButton: {
-    background: '#f8f9fa',
-    color: '#333',
-    border: '1px solid #ddd',
-    padding: '10px 20px',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '14px',
-  },
-};
-
-export default SalesReceipt;
+export default InvoiceApp;
