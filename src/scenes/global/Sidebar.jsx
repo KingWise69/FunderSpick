@@ -113,7 +113,6 @@ const Sidebar = () => {
   <Item title="Manage Sales" to="/pos/manage" icon={<TimelineIcon />} selected={selected} setSelected={setSelected} />
   <Item title="Products" to="/pos/products" icon={<InventoryIcon />} selected={selected} setSelected={setSelected} />
  
-  <Item title="Payments" to="/pos/payments" icon={<PaymentIcon />} selected={selected} setSelected={setSelected} />
   
   <Item title="Reports" to="/pos/reports" icon={<AssessmentIcon />} selected={selected} setSelected={setSelected} />
   <Item title="Settings" to="/pos/settings" icon={<SettingsIcon />} selected={selected} setSelected={setSelected} />
