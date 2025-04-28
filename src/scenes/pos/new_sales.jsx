@@ -654,7 +654,7 @@ const handleApplyDiscount = () => {
           <Tooltip title="Current Staff">
             <Chip
               avatar={<Avatar><PersonIcon /></Avatar>}
-              label="Staff: John Doe"
+              label="Staff: Emma Nabunya"
               variant="outlined"
             />
           </Tooltip>
