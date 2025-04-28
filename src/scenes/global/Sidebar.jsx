@@ -78,18 +78,7 @@ const Sidebar = () => {
           <SubMenu title="Point Of Sale (POS)" icon={<ShoppingCartOutlinedIcon />}>
           <Item title="Dashboard" to="/dashboard" icon={<CategoryOutlinedIcon />} selected={selected} setSelected={setSelected} />
           <Item title="New Sales" to="/pos/new_sales" icon={<BusinessCenterOutlinedIcon />} selected={selected} setSelected={setSelected} />
-  <SubMenu title="Items" icon={<HomeOutlinedIcon />}>
   
- 
-      <Item title="Favourite" to="/pos/fav" icon={<StarBorderIcon />} selected={selected} setSelected={setSelected} />
-      <Item title="Dessert" to="/pos/dessert" icon={<CakeIcon />} selected={selected} setSelected={setSelected} />
-      
-      <Item title="Beverages" to="/pos/beverages" icon={<LocalCafeIcon />} selected={selected} setSelected={setSelected} />
-      <Item title="Stock Transfers" to="/pos/stock" icon={<SyncAltIcon />} selected={selected} setSelected={setSelected} />
-      <Item title="Hold Orders" to="/pos/hold" icon={<PauseCircleOutlineIcon />} selected={selected} setSelected={setSelected} />
-      <Item title="Discounts & Promotions" to="/pos/dis" icon={<LocalOfferIcon />} selected={selected} setSelected={setSelected} />
-      <Item title="Refunds & Returns" to="/pos/refund" icon={<ReplayIcon />} selected={selected} setSelected={setSelected} />
-  </SubMenu>
 
   <SubMenu title="User Management" icon={<PeopleOutlinedIcon />}>
               <Item title="Users" to="/pos/user" icon={<PersonAddIcon />} selected={selected} setSelected={setSelected} />
