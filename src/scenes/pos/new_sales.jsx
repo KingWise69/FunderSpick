@@ -43,6 +43,7 @@ import {
   ListItem,
   ListItemText,
   ListItemAvatar,
+  Drawer,
 } from "@mui/material";
 import {
   ShoppingCart as ShoppingCartIcon,
@@ -65,6 +66,7 @@ import {
   AccountBalance as BankIcon,
   PhoneIphone as MobileMoneyIcon,
   Print as PrintIcon,
+  AttachMoney as CashIcon,
 } from "@mui/icons-material";
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -276,7 +278,6 @@ const productData = [
     barcode: "567894321098",
     supplier: "Colgate-Palmolive"
   }
-  // ... (other products from previous example)
 ];
 
 // Payment Methods
@@ -305,7 +306,54 @@ const paymentMethods = [
     image: '/assets/lyca.png',
     fields: ["Phone Number", "Transaction ID"]
   },
-  // ... (other payment methods from previous example)
+  {
+    id: 4,
+    name: "Pay with Cash",
+    type: "cash",
+    icon: <CashIcon />,
+    image: '',
+    fields: []
+  },
+  {
+    id: 5,
+    name: "PayPal",
+    type: "third_party",
+    icon: <PaymentIcon />,
+    image: '/assets/paypal.png',
+    fields: ["Email", "Transaction ID"]
+  },
+  {
+    id: 6,
+    name: "Flutterwave",
+    type: "third_party",
+    icon: <PaymentIcon />,
+    image: '/assets/flutter.png',
+    fields: ["Email", "Transaction ID"]
+  },
+  {
+    id: 7,
+    name: "Stripe",
+    type: "third_party",
+    icon: <PaymentIcon />,
+    image: '/assets/stripe.png',
+    fields: ["Email", "Transaction ID"]
+  },
+  {
+    id: 8,
+    name: "Razorpay",
+    type: "third_party",
+    icon: <PaymentIcon />,
+    image: '/assets/razor.png',
+    fields: ["Email", "Transaction ID"]
+  },
+  {
+    id: 9,
+    name: "Paystack",
+    type: "third_party",
+    icon: <PaymentIcon />,
+    image: '/assets/pay.png',
+    fields: ["Email", "Transaction ID"]
+  }
 ];
 
 // Discount Offers
@@ -344,6 +392,7 @@ const SalesPage = () => {
   const [receiptModalOpen, setReceiptModalOpen] = useState(false);
   const [currentReceipt, setCurrentReceipt] = useState(null);
   const [paymentHistoryOpen, setPaymentHistoryOpen] = useState(false);
+  const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
 
   const navigate = useNavigate();
 
@@ -369,7 +418,6 @@ const categoryMap = {
   Snacks: ["Chips", "Biscuits", "Nuts"],
   Dairy: ["Milk", "Cheese", "Yogurt"],
   Bakery: ["Bread", "Cakes", "Pastries"],
-  // Add more categories if you have
 };
 
 // Handlers
@@ -446,6 +494,7 @@ const handleApplyDiscount = () => {
     }
     setSnackbarMessage(`${product.name} added to cart!`);
     setOpenSnackbar(true);
+    setCartDrawerOpen(true); // Open cart drawer when item is added
   };
 
   const handleRemoveFromCart = (productId) => {
@@ -498,6 +547,7 @@ const handleApplyDiscount = () => {
     setPaymentDetails({});
     setActiveStep(0);
     setOpenCartDialog(false);
+    setCartDrawerOpen(false);
     
     setSnackbarMessage("Payment processed successfully!");
     setOpenSnackbar(true);
@@ -618,125 +668,289 @@ const handleApplyDiscount = () => {
           <Typography>{transaction.paymentMethod.name}</Typography>
         </Box>
         
-        {Object.entries(transaction.paymentDetails).map(([field, value]) => (
-          <Typography key={field} variant="body2">
-            {field}: {value}
+        {Object.entries(transaction.paymentDetails).map(([key, value]) => (
+          <Typography key={key}>
+            {key}: {value}
           </Typography>
         ))}
       </Box>
       
-      <Divider sx={{ my: 1 }} />
+      <Divider sx={{ my: 2 }} />
       
       {/* Footer */}
       <Box sx={{ textAlign: 'center', mt: 2 }}>
-        <Typography variant="body2">Thank you for your business!</Typography>
-        <Typography variant="caption" display="block">Terms & Conditions Apply</Typography>
-        <Typography variant="caption" display="block">Returns accepted within 7 days with receipt</Typography>
+        <Typography variant="caption" display="block">Thank you for your business!</Typography>
+        <Typography variant="caption" display="block">Items cannot be returned without receipt</Typography>
+        <Typography variant="caption" display="block">Terms and conditions apply</Typography>
       </Box>
     </Box>
   );
 
   // Calculations
-  const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountAmount = appliedDiscount ? (subtotal * appliedDiscount.discount) / 100 : 0;
-  const taxAmount = subtotal * 0.18;
+  const taxRate = 0.18; // 18% VAT
+  const taxAmount = (subtotal - discountAmount) * taxRate;
   const totalAmount = subtotal - discountAmount + taxAmount;
 
-  return (
-    <Box p={3}>
-      {/* Header Section */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" gutterBottom>
-          POS Sales Terminal
-        </Typography>
+  // Steps for checkout process
+  const steps = ['Cart Review', 'Customer Info', 'Payment'];
+
+  // Handle step changes
+  const handleNext = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+  };
+
+  const handleBack = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+  };
+
+  // Render functions for each step
+  const renderCartReview = () => (
+    <Box>
+      <List>
+        {cart.map((item) => (
+          <ListItem key={item.id} secondaryAction={
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton onClick={() => handleDecreaseQuantity(item.id)}>
+                <RemoveIcon />
+              </IconButton>
+              <Typography sx={{ mx: 1 }}>{item.quantity}</Typography>
+              <IconButton onClick={() => handleIncreaseQuantity(item.id)}>
+                <AddIcon />
+              </IconButton>
+              <IconButton 
+                onClick={() => handleRemoveFromCart(item.id)}
+                color="error"
+                sx={{ ml: 2 }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          }>
+            <ListItemAvatar>
+              <Avatar src={item.image} alt={item.name} />
+            </ListItemAvatar>
+            <ListItemText
+              primary={item.name}
+              secondary={`UGX ${item.price.toLocaleString()} x ${item.quantity} = UGX ${(item.price * item.quantity).toLocaleString()}`}
+            />
+          </ListItem>
+        ))}
+      </List>
+      
+      {cart.length === 0 && (
+        <Typography sx={{ textAlign: 'center', p: 3 }}>Your cart is empty</Typography>
+      )}
+      
+      <Divider sx={{ my: 2 }} />
+      
+      <Box sx={{ p: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+          <Typography>Subtotal:</Typography>
+          <Typography>UGX {subtotal.toLocaleString()}</Typography>
+        </Box>
         
-        <Box display="flex" alignItems="center" gap={2}>
-          <Tooltip title="Current Staff">
-            <Chip
-              avatar={<Avatar><PersonIcon /></Avatar>}
-              label="Staff: Emma Nabunya"
-              variant="outlined"
-            />
-          </Tooltip>
-          
-          <Tooltip title="Register Status">
-            <Chip
-              label="Register: Open"
-              color="success"
-              variant="outlined"
-            />
-          </Tooltip>
-          
-          <IconButton
-            color="primary"
-            onClick={() => setOpenCartDialog(true)}
-            sx={{ position: "relative" }}
-          >
-            <Badge badgeContent={cart.reduce((sum, item) => sum + item.quantity, 0)} color="error">
-              <ShoppingCartIcon />
-            </Badge>
-          </IconButton>
+        {appliedDiscount && (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography>Discount ({appliedDiscount.discount}%):</Typography>
+            <Typography color="success.main">-UGX {discountAmount.toLocaleString()}</Typography>
+          </Box>
+        )}
+        
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+          <Typography>Tax (18%):</Typography>
+          <Typography>UGX {taxAmount.toLocaleString()}</Typography>
+        </Box>
+        
+        <Divider sx={{ my: 1 }} />
+        
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <Typography variant="h6">Total:</Typography>
+          <Typography variant="h6">UGX {totalAmount.toLocaleString()}</Typography>
+        </Box>
+        
+        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+          <TextField
+            label="Discount Code"
+            value={discountCode}
+            onChange={(e) => setDiscountCode(e.target.value)}
+            size="small"
+            fullWidth
+          />
+          {appliedDiscount ? (
+            <Button 
+              variant="outlined" 
+              color="error"
+              onClick={handleRemoveDiscount}
+            >
+              Remove
+            </Button>
+          ) : (
+            <Button 
+              variant="contained" 
+              onClick={handleApplyDiscount}
+              disabled={!discountCode}
+            >
+              Apply
+            </Button>
+          )}
         </Box>
       </Box>
+    </Box>
+  );
 
-      {/* Barcode Scanner */}
-      <Box mb={3}>
-        <TextField
-          fullWidth
-          label="Scan Barcode"
-          variant="outlined"
-          value={barcodeInput}
-          onChange={(e) => setBarcodeInput(e.target.value)}
-          onKeyPress={handleBarcodeScan}
-          InputProps={{
-            startAdornment: <SearchIcon sx={{ mr: 1 }} />,
-          }}
-        />
-      </Box>
+  const renderCustomerInfo = () => (
+    <Box sx={{ p: 2 }}>
+      <Typography variant="h6" gutterBottom>Customer Information</Typography>
+      <TextField
+        label="Customer Name"
+        fullWidth
+        margin="normal"
+        value={customerDetails.name}
+        onChange={(e) => setCustomerDetails({...customerDetails, name: e.target.value})}
+      />
+      <TextField
+        label="Phone Number"
+        fullWidth
+        margin="normal"
+        value={customerDetails.phone}
+        onChange={(e) => setCustomerDetails({...customerDetails, phone: e.target.value})}
+      />
+      <TextField
+        label="Email Address"
+        fullWidth
+        margin="normal"
+        value={customerDetails.email}
+        onChange={(e) => setCustomerDetails({...customerDetails, email: e.target.value})}
+      />
+    </Box>
+  );
 
-      {/* Quick Categories */}
-      <Box mb={3}>
-        <Typography variant="subtitle1" gutterBottom>
-          Quick Categories
-        </Typography>
-        <Box display="flex" gap={1} flexWrap="wrap">
-          {Object.keys(categoryMap).map((cat) => (
-            <Chip
-              key={cat}
-              label={cat}
-              onClick={() => setCategory(cat)}
-              color={category === cat ? "primary" : "default"}
-              icon={<CategoryIcon />}
+  const renderPaymentMethod = () => (
+    <Box sx={{ p: 2 }}>
+      <Typography variant="h6" gutterBottom>Select Payment Method</Typography>
+      
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        {paymentMethods.map((method) => (
+          <Grid item xs={6} sm={4} key={method.id}>
+            <Card 
+              variant={selectedPaymentMethod?.id === method.id ? 'outlined' : 'elevation'}
+              sx={{ 
+                cursor: 'pointer',
+                borderColor: selectedPaymentMethod?.id === method.id ? 'primary.main' : '',
+                borderWidth: selectedPaymentMethod?.id === method.id ? 2 : 1,
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                p: 2
+              }}
+              onClick={() => handlePaymentMethodSelect(method)}
+            >
+              {method.image ? (
+                <img 
+                  src={method.image} 
+                  alt={method.name}
+                  style={{ height: 30, marginBottom: 8 }}
+                />
+              ) : (
+                React.cloneElement(method.icon, { fontSize: 'large' })
+              )}
+              <Typography variant="body2" textAlign="center">
+                {method.name}
+              </Typography>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+      
+      {selectedPaymentMethod && (
+        <Box>
+          <Typography variant="subtitle1" gutterBottom>
+            {selectedPaymentMethod.name} Details
+          </Typography>
+          
+          {selectedPaymentMethod.fields.map((field) => (
+            <TextField
+              key={field}
+              label={field}
+              fullWidth
+              margin="normal"
+              value={paymentDetails[field] || ''}
+              onChange={(e) => handlePaymentDetailChange(field, e.target.value)}
+              required
             />
           ))}
         </Box>
-      </Box>
+      )}
+    </Box>
+  );
 
-      {/* Filters Section */}
-      <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
-        <Box display="flex" alignItems="center" gap={1} mb={2}>
-          <FilterListIcon />
-          <Typography variant="h6">Filters</Typography>
-        </Box>
+  // Main render
+  return (
+    <Box sx={{ flexGrow: 1, p: 3 }}>
+      {/* Header with search and cart */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <TextField
+          placeholder="Search products..."
+          variant="outlined"
+          size="small"
+          sx={{ width: 300 }}
+          InputProps={{
+            startAdornment: <SearchIcon sx={{ mr: 1 }} />
+          }}
+          value={searchText}
+          onChange={handleSearch}
+        />
         
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={3}>
-            <TextField
-              label="Search Products"
-              fullWidth
-              variant="outlined"
-              value={searchText}
-              onChange={handleSearch}
-              InputProps={{
-                startAdornment: <SearchIcon sx={{ mr: 1 }} />,
-              }}
-            />
-          </Grid>
-
-          <Grid item xs={12} sm={2}>
-            <FormControl fullWidth>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <TextField
+            placeholder="Scan barcode..."
+            variant="outlined"
+            size="small"
+            value={barcodeInput}
+            onChange={(e) => setBarcodeInput(e.target.value)}
+            onKeyPress={handleBarcodeScan}
+            InputProps={{
+              endAdornment: <IconButton onClick={() => setBarcodeInput('')} size="small">
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            }}
+          />
+          
+          <Badge badgeContent={cart.length} color="primary">
+            <Button
+              variant="contained"
+              startIcon={<ShoppingCartIcon />}
+              onClick={() => setCartDrawerOpen(true)}
+            >
+              Cart
+            </Button>
+          </Badge>
+          
+          <Button
+            variant="outlined"
+            startIcon={<HistoryIcon />}
+            onClick={() => setPaymentHistoryOpen(true)}
+          >
+            History
+          </Button>
+        </Box>
+      </Box>
+      
+      {/* Filters */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} sm={6} md={3}>
+            <FormControl fullWidth size="small">
               <InputLabel>Category</InputLabel>
-              <Select value={category} onChange={handleCategoryChange} label="Category">
+              <Select
+                value={category}
+                label="Category"
+                onChange={handleCategoryChange}
+              >
                 <MenuItem value="">All Categories</MenuItem>
                 {Object.keys(categoryMap).map((cat) => (
                   <MenuItem key={cat} value={cat}>{cat}</MenuItem>
@@ -744,14 +958,14 @@ const handleApplyDiscount = () => {
               </Select>
             </FormControl>
           </Grid>
-
-          <Grid item xs={12} sm={2}>
-            <FormControl fullWidth>
+          
+          <Grid item xs={12} sm={6} md={3}>
+            <FormControl fullWidth size="small">
               <InputLabel>Subcategory</InputLabel>
-              <Select 
-                value={subcategory} 
-                onChange={handleSubcategoryChange} 
+              <Select
+                value={subcategory}
                 label="Subcategory"
+                onChange={handleSubcategoryChange}
                 disabled={!category}
               >
                 <MenuItem value="">All Subcategories</MenuItem>
@@ -761,476 +975,252 @@ const handleApplyDiscount = () => {
               </Select>
             </FormControl>
           </Grid>
-
-          <Grid item xs={12} sm={3}>
-            <Typography variant="body1">Price Range (UGX)</Typography>
-            <Slider
-              value={[minPrice, maxPrice]}
-              onChange={handlePriceChange}
-              valueLabelDisplay="auto"
-              min={0}
-              max={100000}
-              step={1000}
-              valueLabelFormat={(value) => `${value.toLocaleString()}`}
-            />
-          </Grid>
-
-          <Grid item xs={12} sm={2}>
-            <Box display="flex" alignItems="center" gap={1}>
-              <SortIcon />
-              <FormControl fullWidth>
-                <InputLabel>Sort By</InputLabel>
-                <Select onChange={handleSort} defaultValue="">
-                  <MenuItem value="priceAsc">Price: Low to High</MenuItem>
-                  <MenuItem value="priceDesc">Price: High to Low</MenuItem>
-                  <MenuItem value="ratingAsc">Rating: Low to High</MenuItem>
-                  <MenuItem value="ratingDesc">Rating: High to Low</MenuItem>
-                </Select>
-              </FormControl>
+          
+          <Grid item xs={12} sm={6} md={3}>
+            <Box sx={{ px: 2 }}>
+              <Typography gutterBottom>Price Range</Typography>
+              <Slider
+                value={[minPrice, maxPrice]}
+                onChange={handlePriceChange}
+                valueLabelDisplay="auto"
+                min={0}
+                max={100000}
+                step={500}
+                valueLabelFormat={(value) => `UGX ${value.toLocaleString()}`}
+              />
             </Box>
+          </Grid>
+          
+          <Grid item xs={12} sm={6} md={3}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Sort By</InputLabel>
+              <Select
+                defaultValue=""
+                label="Sort By"
+                onChange={handleSort}
+              >
+                <MenuItem value="">Default</MenuItem>
+                <MenuItem value="price_low_high">Price: Low to High</MenuItem>
+                <MenuItem value="price_high_low">Price: High to Low</MenuItem>
+                <MenuItem value="rating_high_low">Rating: High to Low</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
         </Grid>
       </Paper>
-
-      {/* Product Grid */}
-      <Grid container spacing={2}>
-        {filteredProducts.length > 0 ? (
-          filteredProducts.map((product) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-              <Card sx={{ display: "flex", flexDirection: "column", height: "100%", position: "relative" }}>
-                {product.stock <= 10 && (
-                  <Chip
-                    label={`Low Stock: ${product.stock}`}
-                    color="warning"
-                    size="small"
-                    sx={{ position: "absolute", top: 8, right: 8, zIndex: 1 }}
-                  />
-                )}
-                
-                <CardMedia
-                  component="img"
-                  image={product.image}
-                  alt={product.name}
-                  sx={{ height: 200, objectFit: "contain", p: 1 }}
-                />
-                
-                <CardContent>
-                  <Typography variant="h6">{product.name}</Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {product.category} &gt; {product.subcategory}
+      
+      {/* Products Grid */}
+      <Grid container spacing={3}>
+        {filteredProducts.map((product) => (
+          <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <CardMedia
+                component="img"
+                height="140"
+                image={product.image}
+                alt={product.name}
+                sx={{ objectFit: 'contain', p: 1, bgcolor: '#f5f5f5' }}
+              />
+              <CardContent sx={{ flexGrow: 1 }}>
+                <Typography gutterBottom variant="h6" component="div">
+                  {product.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  {product.category} &gt; {product.subcategory}
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Rating value={product.rating} precision={0.5} readOnly size="small" />
+                  <Typography variant="body2" sx={{ ml: 1 }}>
+                    ({product.rating})
                   </Typography>
-                  <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
-                    {product.description}
-                  </Typography>
-                  
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography variant="body1" color="textPrimary" fontWeight="bold">
-                      UGX {product.price.toLocaleString()}
-                    </Typography>
-                    <Rating value={product.rating} precision={0.5} readOnly size="small" />
-                  </Box>
-                  
-                  <Typography variant="caption" color="textSecondary">
-                    Barcode: {product.barcode}
-                  </Typography>
-                </CardContent>
-                
+                </Box>
+                <Typography variant="h6" color="primary" sx={{ mb: 1 }}>
+                  UGX {product.price.toLocaleString()}
+                </Typography>
+                <Typography variant="body2" sx={{ fontStyle: 'italic', mb: 2 }}>
+                  {product.stock} in stock
+                </Typography>
+              </CardContent>
+              <Box sx={{ p: 2 }}>
                 <Button
-                  variant="contained"
-                  color="primary"
-                  disabled={product.stock === 0}
-                  onClick={() => handleAddToCart(product)}
                   fullWidth
-                  sx={{ mt: "auto" }}
-                  startIcon={<AddIcon />}
+                  variant="contained"
+                  onClick={() => handleAddToCart(product)}
+                  disabled={product.stock <= 0}
                 >
-                  {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+                  {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
                 </Button>
-              </Card>
-            </Grid>
-          ))
-        ) : (
-          <Grid item xs={12}>
-            <Typography variant="h6" align="center">
-              No products found matching your criteria
-            </Typography>
+              </Box>
+            </Card>
           </Grid>
-        )}
+        ))}
       </Grid>
-
-      {/* Cart Dialog */}
-      <Dialog 
-        open={openCartDialog} 
-        onClose={() => setOpenCartDialog(false)}
+      
+      {/* Empty State */}
+      {filteredProducts.length === 0 && (
+        <Box sx={{ textAlign: 'center', p: 5 }}>
+          <Typography variant="h6" gutterBottom>
+            No products found matching your criteria
+          </Typography>
+          <Button variant="outlined" onClick={() => {
+            setCategory('');
+            setSubcategory('');
+            setMinPrice(0);
+            setMaxPrice(100000);
+            setRating(0);
+            setSearchText('');
+          }}>
+            Clear Filters
+          </Button>
+        </Box>
+      )}
+      
+      {/* Cart Drawer */}
+      <Drawer
+        anchor="right"
+        open={cartDrawerOpen}
+        onClose={() => setCartDrawerOpen(false)}
+        PaperProps={{ sx: { width: { xs: '100%', sm: 500 } } }}
+      >
+        <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h5">Your Cart</Typography>
+            <IconButton onClick={() => setCartDrawerOpen(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+          
+          <Stepper activeStep={activeStep} sx={{ mb: 3 }}>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+          
+          <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+            {activeStep === 0 && renderCartReview()}
+            {activeStep === 1 && renderCustomerInfo()}
+            {activeStep === 2 && renderPaymentMethod()}
+          </Box>
+          
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 2 }}>
+            <Button
+              disabled={activeStep === 0}
+              onClick={handleBack}
+              variant="outlined"
+            >
+              Back
+            </Button>
+            
+            {activeStep === steps.length - 1 ? (
+              <Button
+                variant="contained"
+                onClick={handleCompleteSale}
+                disabled={!selectedPaymentMethod || cart.length === 0}
+              >
+                Complete Sale
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={handleNext}
+                disabled={cart.length === 0}
+              >
+                Next
+              </Button>
+            )}
+          </Box>
+        </Box>
+      </Drawer>
+      
+      {/* Payment History Dialog */}
+      <Dialog
+        open={paymentHistoryOpen}
+        onClose={() => setPaymentHistoryOpen(false)}
         fullWidth
         maxWidth="md"
       >
         <DialogTitle>
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Box display="flex" alignItems="center" gap={1}>
-              <ShoppingCartIcon />
-              <span>Shopping Cart</span>
-            </Box>
-            <IconButton onClick={() => setOpenCartDialog(false)}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">Payment History</Typography>
+            <IconButton onClick={() => setPaymentHistoryOpen(false)}>
               <CloseIcon />
             </IconButton>
           </Box>
         </DialogTitle>
-        
         <DialogContent>
-          <Stepper activeStep={activeStep} sx={{ mb: 3 }}>
-            <Step>
-              <StepLabel>Cart Items</StepLabel>
-            </Step>
-            <Step>
-              <StepLabel>Customer Details</StepLabel>
-            </Step>
-            <Step>
-              <StepLabel>Payment</StepLabel>
-            </Step>
-          </Stepper>
-          
-          {activeStep === 0 && (
-            <>
-              <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 2 }}>
-                <Tab label="Cart Items" icon={<ShoppingCartIcon />} />
-                <Tab label="Discounts" icon={<DiscountIcon />} />
-              </Tabs>
-              
-              {activeTab === 0 ? (
-                <>
-                  <TableContainer>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Product</TableCell>
-                          <TableCell align="right">Price</TableCell>
-                          <TableCell align="center">Quantity</TableCell>
-                          <TableCell align="right">Total</TableCell>
-                          <TableCell align="right">Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {cart.length > 0 ? (
-                          cart.map((item) => (
-                            <TableRow key={item.id}>
-                              <TableCell>
-                                <Box display="flex" alignItems="center" gap={2}>
-                                  <Avatar src={item.image} variant="square" />
-                                  <Box>
-                                    <Typography>{item.name}</Typography>
-                                    <Typography variant="caption" color="textSecondary">
-                                      {item.category}
-                                    </Typography>
-                                  </Box>
-                                </Box>
-                              </TableCell>
-                              <TableCell align="right">
-                                UGX {item.price.toLocaleString()}
-                              </TableCell>
-                              <TableCell align="center">
-                                <Box display="flex" alignItems="center" justifyContent="center">
-                                  <IconButton 
-                                    size="small" 
-                                    onClick={() => handleDecreaseQuantity(item.id)}
-                                  >
-                                    <RemoveIcon fontSize="small" />
-                                  </IconButton>
-                                  <Typography mx={1}>{item.quantity}</Typography>
-                                  <IconButton 
-                                    size="small" 
-                                    onClick={() => handleIncreaseQuantity(item.id)}
-                                  >
-                                    <AddIcon fontSize="small" />
-                                  </IconButton>
-                                </Box>
-                              </TableCell>
-                              <TableCell align="right">
-                                UGX {(item.price * item.quantity).toLocaleString()}
-                              </TableCell>
-                              <TableCell align="right">
-                                <IconButton 
-                                  size="small" 
-                                  color="error"
-                                  onClick={() => handleRemoveFromCart(item.id)}
-                                >
-                                  <CloseIcon fontSize="small" />
-                                </IconButton>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell colSpan={5} align="center">
-                              <Typography variant="body1" color="textSecondary">
-                                Your cart is empty
-                              </Typography>
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                  
-                  <Divider sx={{ my: 2 }} />
-                  
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                    <Typography>Subtotal:</Typography>
-                    <Typography fontWeight="bold">UGX {subtotal.toLocaleString()}</Typography>
-                  </Box>
-                  
-                  {appliedDiscount && (
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Typography>Discount ({appliedDiscount.name}):</Typography>
-                        <Chip 
-                          label={`${appliedDiscount.discount}%`} 
-                          size="small" 
-                          color="success" 
-                          onDelete={handleRemoveDiscount}
-                        />
-                      </Box>
-                      <Typography fontWeight="bold" color="error">
-                        -UGX {discountAmount.toLocaleString()}
-                      </Typography>
-                    </Box>
-                  )}
-                  
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                    <Typography>Tax (18%):</Typography>
-                    <Typography fontWeight="bold">UGX {taxAmount.toLocaleString()}</Typography>
-                  </Box>
-                  
-                  <Divider sx={{ my: 1 }} />
-                  
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                    <Typography variant="h6">Total:</Typography>
-                    <Typography variant="h5" fontWeight="bold">
-                      UGX {totalAmount.toLocaleString()}
-                    </Typography>
-                  </Box>
-                </>
-              ) : (
-                <Box>
-                  <Typography variant="h6" gutterBottom>
-                    Available Discounts
-                  </Typography>
-                  
-                  <Grid container spacing={2} sx={{ mb: 3 }}>
-                    {discountOffers.map((offer) => (
-                      <Grid item xs={12} sm={6} md={4} key={offer.id}>
-                        <Card variant="outlined">
-                          <CardContent>
-                            <Box display="flex" justifyContent="space-between">
-                              <Typography fontWeight="bold">{offer.name}</Typography>
-                              <Chip 
-                                label={`${offer.discount}% OFF`} 
-                                color="success" 
-                                size="small"
-                              />
-                            </Box>
-                            <Typography variant="caption" color="textSecondary">
-                              Code: {offer.code}
-                            </Typography>
-                            <Button
-                              size="small"
-                              fullWidth
-                              sx={{ mt: 1 }}
-                              onClick={() => {
-                                setDiscountCode(offer.code);
-                                setAppliedDiscount(offer);
-                              }}
-                              disabled={appliedDiscount?.id === offer.id}
-                            >
-                              {appliedDiscount?.id === offer.id ? "Applied" : "Apply"}
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                    ))}
-                  </Grid>
-                  
-                  <Box display="flex" gap={1}>
-                    <TextField
-                      label="Enter Discount Code"
-                      fullWidth
-                      value={discountCode}
-                      onChange={(e) => setDiscountCode(e.target.value)}
-                    />
-                    <Button 
-                      variant="contained" 
-                      onClick={handleApplyDiscount}
-                      disabled={!discountCode}
-                    >
-                      Apply
-                    </Button>
-                  </Box>
-                </Box>
-              )}
-            </>
-          )}
-          
-          {activeStep === 1 && (
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                Customer Information
-              </Typography>
-              
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Customer Name"
-                    fullWidth
-                    value={customerDetails.name}
-                    onChange={(e) => setCustomerDetails({...customerDetails, name: e.target.value})}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Phone Number"
-                    fullWidth
-                    value={customerDetails.phone}
-                    onChange={(e) => setCustomerDetails({...customerDetails, phone: e.target.value})}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    label="Email Address"
-                    fullWidth
-                    value={customerDetails.email}
-                    onChange={(e) => setCustomerDetails({...customerDetails, email: e.target.value})}
-                  />
-                </Grid>
-              </Grid>
-              
-              <Typography variant="subtitle2" color="textSecondary" sx={{ mt: 2 }}>
-                * Customer information is optional but recommended for receipts and loyalty programs
-              </Typography>
-            </Box>
-          )}
-          
-          {activeStep === 2 && (
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                Select Payment Method
-              </Typography>
-              
-              <Grid container spacing={2} sx={{ mb: 3 }}>
-                {paymentMethods.map((method) => (
-                  <Grid item xs={6} sm={4} key={method.id}>
-                    <Button
-                      variant={selectedPaymentMethod?.id === method.id ? "contained" : "outlined"}
-                      fullWidth
-                      sx={{ p: 2, height: "100%" }}
-                      onClick={() => handlePaymentMethodSelect(method)}
-                    >
-                      <Box display="flex" flexDirection="column" alignItems="center">
-                        {method.image ? (
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Transaction ID</TableCell>
+                  <TableCell>Customer</TableCell>
+                  <TableCell>Items</TableCell>
+                  <TableCell>Total</TableCell>
+                  <TableCell>Payment</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {paymentHistory.map((transaction) => (
+                  <TableRow key={transaction.id}>
+                    <TableCell>
+                      {format(new Date(transaction.date), 'PPpp')}
+                    </TableCell>
+                    <TableCell>{transaction.id}</TableCell>
+                    <TableCell>
+                      {transaction.customer.name || 'Anonymous'}
+                    </TableCell>
+                    <TableCell>
+                      {transaction.items.reduce((sum, item) => sum + item.quantity, 0)}
+                    </TableCell>
+                    <TableCell>
+                      UGX {transaction.total.toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {transaction.paymentMethod.image ? (
                           <img 
-                            src={method.image} 
-                            alt={method.name}
-                            style={{ height: 30, marginBottom: 8 }}
+                            src={transaction.paymentMethod.image} 
+                            alt={transaction.paymentMethod.name}
+                            style={{ height: 20 }}
                           />
-                        ) : React.cloneElement(method.icon, { sx: { fontSize: 30, mb: 1 } })}
-                        <Typography>{method.name}</Typography>
+                        ) : (
+                          React.cloneElement(transaction.paymentMethod.icon, { fontSize: 'small' })
+                        )}
+                        <Typography>{transaction.paymentMethod.name}</Typography>
                       </Box>
-                    </Button>
-                  </Grid>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        size="small"
+                        startIcon={<ReceiptIcon />}
+                        onClick={() => {
+                          setCurrentReceipt(transaction);
+                          setReceiptModalOpen(true);
+                        }}
+                      >
+                        Receipt
+                      </Button>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </Grid>
-              
-              {selectedPaymentMethod && (
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="h6" gutterBottom>
-                    {selectedPaymentMethod.name} Details
-                  </Typography>
-                  
-                  <Grid container spacing={2}>
-                    {selectedPaymentMethod.fields.map((field) => (
-                      <Grid item xs={12} sm={6} key={field}>
-                        <TextField
-                          label={field}
-                          fullWidth
-                          value={paymentDetails[field] || ''}
-                          onChange={(e) => handlePaymentDetailChange(field, e.target.value)}
-                        />
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Box>
-              )}
-              
-              <Typography variant="h6" gutterBottom>
-                Order Summary
-              </Typography>
-              
-              <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>Subtotal</TableCell>
-                      <TableCell align="right">UGX {subtotal.toLocaleString()}</TableCell>
-                    </TableRow>
-                    {appliedDiscount && (
-                      <TableRow>
-                        <TableCell>Discount ({appliedDiscount.name})</TableCell>
-                        <TableCell align="right" sx={{ color: "error.main" }}>
-                          -UGX {discountAmount.toLocaleString()}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                    <TableRow>
-                      <TableCell>Tax (18%)</TableCell>
-                      <TableCell align="right">UGX {taxAmount.toLocaleString()}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell><strong>Total</strong></TableCell>
-                      <TableCell align="right"><strong>UGX {totalAmount.toLocaleString()}</strong></TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Box>
-          )}
+                
+                {paymentHistory.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} sx={{ textAlign: 'center', p: 3 }}>
+                      <Typography variant="body1">No transaction history yet</Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </DialogContent>
-        
-        <DialogActions sx={{ p: 3, justifyContent: "space-between" }}>
-          <Box>
-            {activeStep > 0 && (
-              <Button 
-                onClick={() => setActiveStep(activeStep - 1)}
-                variant="outlined"
-              >
-                Back
-              </Button>
-            )}
-          </Box>
-          
-          <Box display="flex" gap={2}>
-            {activeStep < 2 ? (
-              <Button 
-                onClick={() => setActiveStep(activeStep + 1)}
-                variant="contained"
-                disabled={cart.length === 0}
-              >
-                {activeStep === 0 ? "Proceed to Checkout" : "Continue to Payment"}
-              </Button>
-            ) : (
-              <Button 
-                onClick={handleCompleteSale}
-                variant="contained"
-                color="success"
-                startIcon={<ReceiptIcon />}
-                disabled={!selectedPaymentMethod || 
-                  Object.values(paymentDetails).some(val => !val)}
-              >
-                Complete Sale
-              </Button>
-            )}
-          </Box>
-        </DialogActions>
       </Dialog>
-
+      
       {/* Receipt Modal */}
       <Modal
         open={receiptModalOpen}
@@ -1240,148 +1230,41 @@ const handleApplyDiscount = () => {
         <Paper sx={{ p: 2, maxWidth: 500, width: '100%' }}>
           {currentReceipt && renderReceipt(currentReceipt)}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-            <Button 
-              variant="contained" 
-              onClick={() => setReceiptModalOpen(false)}
-              startIcon={<CloseIcon />}
-            >
-              Close
-            </Button>
-            <Button 
-              variant="contained" 
-              color="success" 
-              sx={{ ml: 2 }}
+            <Button
+              variant="contained"
               startIcon={<PrintIcon />}
-              onClick={() => {
-                const receiptElement = document.getElementById('receipt');
-                if (receiptElement) {
-                  const printWindow = window.open('', '', 'width=600,height=600');
-                  printWindow.document.write(`
-                    <html>
-                      <head>
-                        <title>Receipt #${currentReceipt.id}</title>
-                        <style>
-                          body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-                          table { width: 100%; border-collapse: collapse; }
-                          th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
-                          .text-center { text-align: center; }
-                          .text-right { text-align: right; }
-                        </style>
-                      </head>
-                      <body>
-                        ${receiptElement.innerHTML}
-                      </body>
-                    </html>
-                  `);
-                  printWindow.document.close();
-                  printWindow.focus();
-                  printWindow.print();
-                  printWindow.close();
-                }
-              }}
+              onClick={() => window.print()}
+              sx={{ mr: 1 }}
             >
-              Print Receipt
+              Print
             </Button>
-          </Box>
-        </Paper>
-      </Modal>
-
-      {/* Payment History Modal */}
-      <Modal
-        open={paymentHistoryOpen}
-        onClose={() => setPaymentHistoryOpen(false)}
-        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      >
-        <Paper sx={{ p: 2, width: '100%', maxWidth: 800, maxHeight: '80vh', overflow: 'auto' }}>
-          <Typography variant="h6" gutterBottom>
-            Payment History
-          </Typography>
-          
-          <List>
-            {paymentHistory.length > 0 ? (
-              paymentHistory.map((transaction) => (
-                <ListItem 
-                  key={transaction.id} 
-                  secondaryAction={
-                    <Button 
-                      size="small" 
-                      onClick={() => {
-                        setCurrentReceipt(transaction);
-                        setReceiptModalOpen(true);
-                      }}
-                    >
-                      View Receipt
-                    </Button>
-                  }
-                >
-                  <ListItemAvatar>
-                    {transaction.paymentMethod.image ? (
-                      <img 
-                        src={transaction.paymentMethod.image} 
-                        alt={transaction.paymentMethod.name}
-                        style={{ height: 30 }}
-                      />
-                    ) : React.cloneElement(transaction.paymentMethod.icon, { sx: { fontSize: 30 } })}
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={`#${transaction.id} - UGX ${transaction.total.toLocaleString()}`}
-                    secondary={
-                      <>
-                        <Typography component="span" display="block">
-                          {format(new Date(transaction.date), 'PPPpp')}
-                        </Typography>
-                        <Typography component="span" display="block">
-                          {transaction.paymentMethod.name} • {transaction.customer.name || 'Walk-in Customer'}
-                        </Typography>
-                      </>
-                    }
-                  />
-                </ListItem>
-              ))
-            ) : (
-              <Typography sx={{ p: 2 }}>No payment history available</Typography>
-            )}
-          </List>
-          
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-            <Button 
-              variant="contained" 
-              onClick={() => setPaymentHistoryOpen(false)}
+            <Button
+              variant="outlined"
+              onClick={() => setReceiptModalOpen(false)}
             >
               Close
             </Button>
           </Box>
         </Paper>
       </Modal>
+      
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={() => setOpenSnackbar(false)} 
+          severity="success"
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </Box>
+  );
+};
 
-      {/* Payment History Button */}
-      <Button
-        variant="contained"
-        startIcon={<HistoryIcon />}
-        
-          onClick={() => setPaymentHistoryOpen(true)}
-          sx={{ position: 'fixed', bottom: 16, right: 16 }}
-        >
-          Payment History
-        </Button>
-  
-        {/* Snackbar for notifications */}
-        <Snackbar 
-          open={openSnackbar} 
-          autoHideDuration={3000} 
-          onClose={() => setOpenSnackbar(false)}
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        >
-          <Alert 
-            severity="success" 
-            onClose={() => setOpenSnackbar(false)}
-            sx={{ width: '100%' }}
-          >
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
-      </Box>
-    );
-  };
-  
-  export default SalesPage;
+export default SalesPage;
