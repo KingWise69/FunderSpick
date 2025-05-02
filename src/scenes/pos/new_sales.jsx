@@ -44,6 +44,9 @@ import {
   ListItemText,
   ListItemAvatar,
   Drawer,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
 import {
   ShoppingCart as ShoppingCartIcon,
@@ -67,6 +70,7 @@ import {
   PhoneIphone as MobileMoneyIcon,
   Print as PrintIcon,
   AttachMoney as CashIcon,
+  ExpandMore as ExpandMoreIcon,
 } from "@mui/icons-material";
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -217,7 +221,7 @@ const productData = [
     price: 750000, 
     rating: 4, 
     stock: 12, 
-    image: "/assets/spark.jpg", 
+    image: "/assets/spark.jpeg", 
     description: "Affordable smartphone with good camera.",
     barcode: "123450987654",
     supplier: "Tecno Mobile"
@@ -375,7 +379,6 @@ const SalesPage = () => {
   const [searchText, setSearchText] = useState("");
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [openCartDialog, setOpenCartDialog] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [discountCode, setDiscountCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState(null);
@@ -393,6 +396,8 @@ const SalesPage = () => {
   const [currentReceipt, setCurrentReceipt] = useState(null);
   const [paymentHistoryOpen, setPaymentHistoryOpen] = useState(false);
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
+  const [cartSearchText, setCartSearchText] = useState("");
+  const [showAllProductsInCart, setShowAllProductsInCart] = useState(false);
 
   const navigate = useNavigate();
 
@@ -413,179 +418,12 @@ const SalesPage = () => {
   };
 
   // Category Map
-const categoryMap = {
-  Beverages: ["Soft Drinks", "Juices", "Water"],
-  Snacks: ["Chips", "Biscuits", "Nuts"],
-  Dairy: ["Milk", "Cheese", "Yogurt"],
-  Bakery: ["Bread", "Cakes", "Pastries"],
-};
-
-// Handlers
-
-const handleSearch = (e) => {
-  setSearchText(e.target.value);
-};
-
-const handleCategoryChange = (e) => {
-  const selectedCategory = e.target.value;
-  setCategory(selectedCategory);
-  setSubcategory(""); // Reset subcategory when category changes
-};
-
-const handleSubcategoryChange = (e) => {
-  setSubcategory(e.target.value);
-};
-
-const handlePriceChange = (event, newValue) => {
-  setMinPrice(newValue[0]);
-  setMaxPrice(newValue[1]);
-};
-
-const handleSort = (e) => {
-  const sortBy = e.target.value;
-  let sortedProducts = [...filteredProducts];
-
-  if (sortBy === "price_low_high") {
-    sortedProducts.sort((a, b) => a.price - b.price);
-  } else if (sortBy === "price_high_low") {
-    sortedProducts.sort((a, b) => b.price - a.price);
-  } else if (sortBy === "rating_high_low") {
-    sortedProducts.sort((a, b) => b.rating - a.rating);
-  }
-
-  setFilteredProducts(sortedProducts);
-};
-
-const handleTabChange = (event, newValue) => {
-  setActiveTab(newValue);
-};
-
-const handleRemoveDiscount = () => {
-  setAppliedDiscount(null);
-  setDiscountCode("");
-  setSnackbarMessage("Discount removed.");
-  setOpenSnackbar(true);
-};
-
-const handleApplyDiscount = () => {
-  const discount = discountOffers.find((offer) => offer.code === discountCode.toUpperCase());
-  if (discount) {
-    setAppliedDiscount(discount);
-    setSnackbarMessage(`Discount '${discount.name}' applied!`);
-    setOpenSnackbar(true);
-  } else {
-    setSnackbarMessage("Invalid discount code.");
-    setOpenSnackbar(true);
-  }
-};
-
-
-  // Cart Management
-  const handleAddToCart = (product) => {
-    const existingProduct = cart.find((item) => item.id === product.id);
-    if (existingProduct) {
-      setCart(
-        cart.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        )
-      );
-    } else {
-      setCart([...cart, { ...product, quantity: 1 }]);
-    }
-    setSnackbarMessage(`${product.name} added to cart!`);
-    setOpenSnackbar(true);
-    setCartDrawerOpen(true); // Open cart drawer when item is added
+  const categoryMap = {
+    Beverages: ["Soft Drinks", "Juices", "Water"],
+    Snacks: ["Chips", "Biscuits", "Nuts"],
+    Dairy: ["Milk", "Cheese", "Yogurt"],
+    Bakery: ["Bread", "Cakes", "Pastries"],
   };
-
-  const handleRemoveFromCart = (productId) => {
-    setCart(cart.filter((item) => item.id !== productId));
-  };
-
-  const handleIncreaseQuantity = (productId) => {
-    setCart(
-      cart.map((item) =>
-        item.id === productId ? { ...item, quantity: item.quantity + 1 } : item
-      )
-    );
-  };
-
-  const handleDecreaseQuantity = (productId) => {
-    setCart(
-      cart.map((item) =>
-        item.id === productId && item.quantity > 1 
-          ? { ...item, quantity: item.quantity - 1 } 
-          : item
-      )
-    );
-  };
-
-  // Payment Processing
-  const handleCompleteSale = () => {
-    const transaction = {
-      id: `TXN-${Date.now()}`,
-      date: new Date(),
-      items: [...cart],
-      customer: customerDetails,
-      paymentMethod: selectedPaymentMethod,
-      paymentDetails: paymentDetails,
-      subtotal: subtotal,
-      discount: discountAmount,
-      tax: taxAmount,
-      total: totalAmount,
-      status: 'completed'
-    };
-
-    setPaymentHistory([transaction, ...paymentHistory]);
-    setCurrentReceipt(transaction);
-    setReceiptModalOpen(true);
-    
-    // Reset system
-    setCart([]);
-    setAppliedDiscount(null);
-    setCustomerDetails({ name: "", phone: "", email: "" });
-    setSelectedPaymentMethod(null);
-    setPaymentDetails({});
-    setActiveStep(0);
-    setOpenCartDialog(false);
-    setCartDrawerOpen(false);
-    
-    setSnackbarMessage("Payment processed successfully!");
-    setOpenSnackbar(true);
-  };
-
-  const handlePaymentMethodSelect = (method) => {
-    setSelectedPaymentMethod(method);
-    const details = {};
-    method.fields.forEach(field => {
-      details[field] = '';
-    });
-    setPaymentDetails(details);
-  };
-
-  const handlePaymentDetailChange = (field, value) => {
-    setPaymentDetails({
-      ...paymentDetails,
-      [field]: value
-    });
-  };
-
-  // Barcode Handling
-  const handleBarcodeScan = (e) => {
-    if (e.key === "Enter" && barcodeInput) {
-      const product = productData.find(
-        (item) => item.barcode === barcodeInput
-      );
-      if (product) {
-        handleAddToCart(product);
-        setBarcodeInput("");
-      } else {
-        setSnackbarMessage("Product not found with this barcode");
-        setOpenSnackbar(true);
-      }
-    }
-  };
-
-  // Receipt Generation
   const renderReceipt = (transaction) => (
     <Box sx={{ p: 3, width: '100%', maxWidth: 400, bgcolor: 'background.paper' }} id="receipt">
       {/* Receipt Header */}
@@ -686,6 +524,157 @@ const handleApplyDiscount = () => {
     </Box>
   );
 
+  // Handlers
+  const handleSearch = (e) => {
+    setSearchText(e.target.value);
+  };
+
+  const handleCategoryChange = (e) => {
+    const selectedCategory = e.target.value;
+    setCategory(selectedCategory);
+    setSubcategory("");
+  };
+
+  const handleSubcategoryChange = (e) => {
+    setSubcategory(e.target.value);
+  };
+
+  const handlePriceChange = (event, newValue) => {
+    setMinPrice(newValue[0]);
+    setMaxPrice(newValue[1]);
+  };
+
+  const handleSort = (e) => {
+    const sortBy = e.target.value;
+    let sortedProducts = [...filteredProducts];
+
+    if (sortBy === "price_low_high") {
+      sortedProducts.sort((a, b) => a.price - b.price);
+    } else if (sortBy === "price_high_low") {
+      sortedProducts.sort((a, b) => b.price - a.price);
+    } else if (sortBy === "rating_high_low") {
+      sortedProducts.sort((a, b) => b.rating - a.rating);
+    }
+
+    setFilteredProducts(sortedProducts);
+  };
+
+  const handlePaymentMethodSelect = (method) => {
+    setSelectedPaymentMethod(method);
+    const details = {};
+    method.fields.forEach(field => {
+      details[field] = '';
+    });
+    setPaymentDetails(details);
+  };
+
+  const handlePaymentDetailChange = (field, value) => {
+    setPaymentDetails({
+      ...paymentDetails,
+      [field]: value
+    });
+  };
+
+  // Cart Management
+  const handleAddToCart = (product) => {
+    if (product.stock <= 0) return;
+    
+    const existingProduct = cart.find((item) => item.id === product.id);
+    if (existingProduct) {
+      if (existingProduct.quantity >= product.stock) {
+        setSnackbarMessage(`Only ${product.stock} items available in stock`);
+        setOpenSnackbar(true);
+        return;
+      }
+      setCart(
+        cart.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        )
+      );
+    } else {
+      setCart([...cart, { ...product, quantity: 1 }]);
+    }
+    setSnackbarMessage(`${product.name} added to cart!`);
+    setOpenSnackbar(true);
+    setCartDrawerOpen(true);
+  };
+
+  const handleRemoveFromCart = (productId) => {
+    setCart(cart.filter((item) => item.id !== productId));
+  };
+
+  const handleIncreaseQuantity = (productId) => {
+    const product = cart.find(item => item.id === productId);
+    const originalProduct = productData.find(p => p.id === productId);
+    
+    if (product.quantity >= originalProduct.stock) {
+      setSnackbarMessage(`Only ${originalProduct.stock} items available in stock`);
+      setOpenSnackbar(true);
+      return;
+    }
+    
+    setCart(
+      cart.map((item) =>
+        item.id === productId ? { ...item, quantity: item.quantity + 1 } : item
+      )
+    );
+  };
+
+  const handleDecreaseQuantity = (productId) => {
+    setCart(
+      cart.map((item) =>
+        item.id === productId && item.quantity > 1 
+          ? { ...item, quantity: item.quantity - 1 } 
+          : item
+      )
+    );
+  };
+
+  // Payment Processing
+  const handleCompleteSale = () => {
+    const transaction = {
+      id: `TXN-${Date.now()}`,
+      date: new Date(),
+      items: [...cart],
+      customer: customerDetails,
+      paymentMethod: selectedPaymentMethod,
+      paymentDetails: paymentDetails,
+      subtotal: subtotal,
+      discount: discountAmount,
+      tax: taxAmount,
+      total: totalAmount,
+      status: 'completed'
+    };
+
+    // Update stock levels
+    const updatedProducts = productData.map(product => {
+      const cartItem = cart.find(item => item.id === product.id);
+      if (cartItem) {
+        return {
+          ...product,
+          stock: product.stock - cartItem.quantity
+        };
+      }
+      return product;
+    });
+
+    setPaymentHistory([transaction, ...paymentHistory]);
+    setCurrentReceipt(transaction);
+    setReceiptModalOpen(true);
+    
+    // Reset system
+    setCart([]);
+    setAppliedDiscount(null);
+    setCustomerDetails({ name: "", phone: "", email: "" });
+    setSelectedPaymentMethod(null);
+    setPaymentDetails({});
+    setActiveStep(0);
+    setCartDrawerOpen(false);
+    
+    setSnackbarMessage("Payment processed successfully!");
+    setOpenSnackbar(true);
+  };
+
   // Calculations
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountAmount = appliedDiscount ? (subtotal * appliedDiscount.discount) / 100 : 0;
@@ -705,11 +694,73 @@ const handleApplyDiscount = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
+  // Filter cart items based on search text
+  const filteredCartItems = cart.filter(item => 
+    item.name.toLowerCase().includes(cartSearchText.toLowerCase())
+  );
+
+  // Search all products for adding to cart
+  const searchAllProducts = productData.filter(product => 
+    product.name.toLowerCase().includes(cartSearchText.toLowerCase()) &&
+    !cart.some(item => item.id === product.id)
+  );
+
   // Render functions for each step
   const renderCartReview = () => (
     <Box>
+      <TextField
+        placeholder="Search items to add to cart..."
+        variant="outlined"
+        size="small"
+        fullWidth
+        sx={{ mb: 2 }}
+        InputProps={{
+          startAdornment: <SearchIcon sx={{ mr: 1 }} />
+        }}
+        value={cartSearchText}
+        onChange={(e) => setCartSearchText(e.target.value)}
+      />
+      
+      <Accordion expanded={showAllProductsInCart} onChange={() => setShowAllProductsInCart(!showAllProductsInCart)}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography>Available Products ({searchAllProducts.length})</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <List dense>
+            {searchAllProducts.map((product) => (
+              <ListItem 
+                key={product.id} 
+                secondaryAction={
+                  <Button 
+                    size="small" 
+                    variant="outlined" 
+                    onClick={() => handleAddToCart(product)}
+                    disabled={product.stock <= 0}
+                  >
+                    Add
+                  </Button>
+                }
+              >
+                <ListItemAvatar>
+                  <Avatar src={product.image} alt={product.name} />
+                </ListItemAvatar>
+                <ListItemText
+                  primary={product.name}
+                  secondary={`UGX ${product.price.toLocaleString()} | Stock: ${product.stock}`}
+                />
+              </ListItem>
+            ))}
+            {searchAllProducts.length === 0 && (
+              <Typography sx={{ textAlign: 'center', p: 2 }}>No matching products found</Typography>
+            )}
+          </List>
+        </AccordionDetails>
+      </Accordion>
+      
+      <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>Cart Items ({cart.length})</Typography>
+      
       <List>
-        {cart.map((item) => (
+        {filteredCartItems.map((item) => (
           <ListItem key={item.id} secondaryAction={
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton onClick={() => handleDecreaseQuantity(item.id)}>
@@ -782,14 +833,29 @@ const handleApplyDiscount = () => {
             <Button 
               variant="outlined" 
               color="error"
-              onClick={handleRemoveDiscount}
+              onClick={() => {
+                setAppliedDiscount(null);
+                setDiscountCode("");
+                setSnackbarMessage("Discount removed.");
+                setOpenSnackbar(true);
+              }}
             >
               Remove
             </Button>
           ) : (
             <Button 
               variant="contained" 
-              onClick={handleApplyDiscount}
+              onClick={() => {
+                const discount = discountOffers.find((offer) => offer.code === discountCode.toUpperCase());
+                if (discount) {
+                  setAppliedDiscount(discount);
+                  setSnackbarMessage(`Discount '${discount.name}' applied!`);
+                  setOpenSnackbar(true);
+                } else {
+                  setSnackbarMessage("Invalid discount code.");
+                  setOpenSnackbar(true);
+                }
+              }}
               disabled={!discountCode}
             >
               Apply
@@ -799,8 +865,9 @@ const handleApplyDiscount = () => {
       </Box>
     </Box>
   );
+  
 
-  const renderCustomerInfo = () => (
+    const renderCustomerInfo = () => (
     <Box sx={{ p: 2 }}>
       <Typography variant="h6" gutterBottom>Customer Information</Typography>
       <TextField
@@ -889,6 +956,7 @@ const handleApplyDiscount = () => {
   );
 
   // Main render
+
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
       {/* Header with search and cart */}
@@ -912,7 +980,20 @@ const handleApplyDiscount = () => {
             size="small"
             value={barcodeInput}
             onChange={(e) => setBarcodeInput(e.target.value)}
-            onKeyPress={handleBarcodeScan}
+            onKeyPress={(e) => {
+              if (e.key === "Enter" && barcodeInput) {
+                const product = productData.find(
+                  (item) => item.barcode === barcodeInput
+                );
+                if (product) {
+                  handleAddToCart(product);
+                  setBarcodeInput("");
+                } else {
+                  setSnackbarMessage("Product not found with this barcode");
+                  setOpenSnackbar(true);
+                }
+              }
+            }}
             InputProps={{
               endAdornment: <IconButton onClick={() => setBarcodeInput('')} size="small">
                 <CloseIcon fontSize="small" />
@@ -940,7 +1021,7 @@ const handleApplyDiscount = () => {
         </Box>
       </Box>
       
-      {/* Filters */}
+       {/* Filters */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={6} md={3}>
@@ -1019,7 +1100,13 @@ const handleApplyDiscount = () => {
                 height="140"
                 image={product.image}
                 alt={product.name}
-                sx={{ objectFit: 'contain', p: 1, bgcolor: '#f5f5f5' }}
+                sx={{ 
+                  objectFit: 'contain', 
+                  p: 1, 
+                  bgcolor: '#f5f5f5',
+                  cursor: 'pointer'
+                }}
+                onClick={() => handleAddToCart(product)}
               />
               <CardContent sx={{ flexGrow: 1 }}>
                 <Typography gutterBottom variant="h6" component="div">
@@ -1047,31 +1134,25 @@ const handleApplyDiscount = () => {
                   variant="contained"
                   onClick={() => handleAddToCart(product)}
                   disabled={product.stock <= 0}
+                  startIcon={<ShoppingCartIcon />}
                 >
-                  {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+                  {product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
                 </Button>
               </Box>
             </Card>
           </Grid>
         ))}
       </Grid>
-      
+
       {/* Empty State */}
       {filteredProducts.length === 0 && (
         <Box sx={{ textAlign: 'center', p: 5 }}>
           <Typography variant="h6" gutterBottom>
-            No products found matching your criteria
+            No products found
           </Typography>
-          <Button variant="outlined" onClick={() => {
-            setCategory('');
-            setSubcategory('');
-            setMinPrice(0);
-            setMaxPrice(100000);
-            setRating(0);
-            setSearchText('');
-          }}>
-            Clear Filters
-          </Button>
+          <Typography variant="body1">
+            Try adjusting your search or filter criteria
+          </Typography>
         </Box>
       )}
       
@@ -1080,16 +1161,20 @@ const handleApplyDiscount = () => {
         anchor="right"
         open={cartDrawerOpen}
         onClose={() => setCartDrawerOpen(false)}
-        PaperProps={{ sx: { width: { xs: '100%', sm: 500 } } }}
+        PaperProps={{ sx: { width: 450 } }}
       >
-        <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h5">Your Cart</Typography>
-            <IconButton onClick={() => setCartDrawerOpen(false)}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-          
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6">
+            Shopping Cart ({cart.length} {cart.length === 1 ? 'item' : 'items'})
+          </Typography>
+          <IconButton onClick={() => setCartDrawerOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        
+        <Divider />
+        
+        <Box sx={{ p: 2 }}>
           <Stepper activeStep={activeStep} sx={{ mb: 3 }}>
             {steps.map((label) => (
               <Step key={label}>
@@ -1098,42 +1183,44 @@ const handleApplyDiscount = () => {
             ))}
           </Stepper>
           
-          <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
-            {activeStep === 0 && renderCartReview()}
-            {activeStep === 1 && renderCustomerInfo()}
-            {activeStep === 2 && renderPaymentMethod()}
-          </Box>
+          {activeStep === 0 && renderCartReview()}
+          {activeStep === 1 && renderCustomerInfo()}
+          {activeStep === 2 && renderPaymentMethod()}
+        </Box>
+        
+        <Divider />
+        
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between' }}>
+          <Button
+            disabled={activeStep === 0}
+            onClick={handleBack}
+          >
+            Back
+          </Button>
           
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 2 }}>
+          {activeStep === steps.length - 1 ? (
             <Button
-              disabled={activeStep === 0}
-              onClick={handleBack}
-              variant="outlined"
+              variant="contained"
+              color="success"
+              onClick={handleCompleteSale}
+              disabled={!selectedPaymentMethod || (selectedPaymentMethod.fields.length > 0 && 
+                Object.values(paymentDetails).some(val => !val))}
+              startIcon={<PaymentIcon />}
             >
-              Back
+              Complete Sale
             </Button>
-            
-            {activeStep === steps.length - 1 ? (
-              <Button
-                variant="contained"
-                onClick={handleCompleteSale}
-                disabled={!selectedPaymentMethod || cart.length === 0}
-              >
-                Complete Sale
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                onClick={handleNext}
-                disabled={cart.length === 0}
-              >
-                Next
-              </Button>
-            )}
-          </Box>
+          ) : (
+            <Button
+              variant="contained"
+              onClick={handleNext}
+              disabled={activeStep === 0 && cart.length === 0}
+            >
+              Next
+            </Button>
+          )}
         </Box>
       </Drawer>
-      
+
       {/* Payment History Dialog */}
       <Dialog
         open={paymentHistoryOpen}
@@ -1159,26 +1246,18 @@ const handleApplyDiscount = () => {
                   <TableCell>Customer</TableCell>
                   <TableCell>Items</TableCell>
                   <TableCell>Total</TableCell>
-                  <TableCell>Payment</TableCell>
+                  <TableCell>Payment Method</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {paymentHistory.map((transaction) => (
                   <TableRow key={transaction.id}>
-                    <TableCell>
-                      {format(new Date(transaction.date), 'PPpp')}
-                    </TableCell>
+                    <TableCell>{format(new Date(transaction.date), 'PPpp')}</TableCell>
                     <TableCell>{transaction.id}</TableCell>
-                    <TableCell>
-                      {transaction.customer.name || 'Anonymous'}
-                    </TableCell>
-                    <TableCell>
-                      {transaction.items.reduce((sum, item) => sum + item.quantity, 0)}
-                    </TableCell>
-                    <TableCell>
-                      UGX {transaction.total.toLocaleString()}
-                    </TableCell>
+                    <TableCell>{transaction.customer.name || 'Walk-in'}</TableCell>
+                    <TableCell>{transaction.items.length}</TableCell>
+                    <TableCell>UGX {transaction.total.toLocaleString()}</TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         {transaction.paymentMethod.image ? (
@@ -1207,57 +1286,58 @@ const handleApplyDiscount = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-                
-                {paymentHistory.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7} sx={{ textAlign: 'center', p: 3 }}>
-                      <Typography variant="body1">No transaction history yet</Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
               </TableBody>
             </Table>
           </TableContainer>
+          
+          {paymentHistory.length === 0 && (
+            <Box sx={{ textAlign: 'center', p: 3 }}>
+              <Typography>No payment history yet</Typography>
+            </Box>
+          )}
         </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPaymentHistoryOpen(false)}>Close</Button>
+        </DialogActions>
       </Dialog>
-      
+
       {/* Receipt Modal */}
       <Modal
         open={receiptModalOpen}
         onClose={() => setReceiptModalOpen(false)}
         sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
-        <Paper sx={{ p: 2, maxWidth: 500, width: '100%' }}>
-          {currentReceipt && renderReceipt(currentReceipt)}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-            <Button
-              variant="contained"
-              startIcon={<PrintIcon />}
-              onClick={() => window.print()}
-              sx={{ mr: 1 }}
-            >
-              Print
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => setReceiptModalOpen(false)}
-            >
-              Close
-            </Button>
+        <Box sx={{ bgcolor: 'background.paper', boxShadow: 24, maxWidth: 500 }}>
+          <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6">Receipt</Typography>
+            <Box>
+              <IconButton onClick={() => window.print()} sx={{ mr: 1 }}>
+                <PrintIcon />
+              </IconButton>
+              <IconButton onClick={() => setReceiptModalOpen(false)}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
           </Box>
-        </Paper>
+          <Box sx={{ p: 3 }}>
+            {currentReceipt && renderReceipt(currentReceipt)}
+          </Box>
+          <DialogActions>
+            <Button onClick={() => setReceiptModalOpen(false)}>Close</Button>
+          </DialogActions>
+        </Box>
       </Modal>
-      
-      {/* Snackbar for notifications */}
+
+      {/* Snackbar Notifications */}
       <Snackbar
         open={openSnackbar}
         autoHideDuration={3000}
         onClose={() => setOpenSnackbar(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <Alert 
           onClose={() => setOpenSnackbar(false)} 
-          severity="success"
+          severity="success" 
           sx={{ width: '100%' }}
         >
           {snackbarMessage}
