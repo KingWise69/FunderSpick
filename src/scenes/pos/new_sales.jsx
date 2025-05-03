@@ -1103,7 +1103,7 @@ const SalesPage = () => {
                 sx={{ 
                   objectFit: 'contain', 
                   p: 1, 
-                  bgcolor: '#f5f5f5',
+                  bgcolor: 'white',
                   cursor: 'pointer'
                 }}
                 onClick={() => handleAddToCart(product)}
