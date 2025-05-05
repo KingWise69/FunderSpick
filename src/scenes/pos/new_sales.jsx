@@ -400,9 +400,12 @@ const SalesPage = () => {
   const [paymentHistoryOpen, setPaymentHistoryOpen] = useState(false);
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
   const [cartSearchText, setCartSearchText] = useState("");
+  const [cashAmount, setCashAmount] = useState('');
+
   const [showAllProductsInCart, setShowAllProductsInCart] = useState(false);
 
   const navigate = useNavigate();
+ 
 
   // Filter Products
   useEffect(() => {
@@ -564,18 +567,23 @@ const SalesPage = () => {
 
   const handlePaymentMethodSelect = (method) => {
     setSelectedPaymentMethod(method);
-    const details = {};
-    method.fields.forEach(field => {
-      details[field] = '';
-    });
-    setPaymentDetails(details);
+    setCashAmount(''); // Reset cash amount when changing payment method
+    if (method.type !== 'cash') {
+      const details = {};
+      method.fields.forEach(field => {
+        details[field] = '';
+      });
+      setPaymentDetails(details);
+    }
   };
-
   const handlePaymentDetailChange = (field, value) => {
-    setPaymentDetails({
-      ...paymentDetails,
-      [field]: value
-    });
+    const updatedDetails = { ...paymentDetails, [field]: value };
+    setPaymentDetails(updatedDetails);
+
+    if (selectedPaymentMethod?.type === 'cash' && field.toLowerCase().includes('amount')) {
+      const amount = parseFloat(value) || 0;
+      setAmountTendered(amount);
+    }
   };
 
   // Cart Management
@@ -653,11 +661,14 @@ const SalesPage = () => {
 
   // Payment Processing (updated for cash handling)
   const handleCompleteSale = () => {
-    // Check if paying with cash and amount is sufficient
-    if (selectedPaymentMethod?.type === 'cash' && amountTendered < totalAmount) {
-      setSnackbarMessage(`Amount tendered (${amountTendered}) is less than total amount (${totalAmount})`);
-      setOpenSnackbar(true);
-      return;
+    // Validate cash payment
+    if (selectedPaymentMethod?.type === 'cash') {
+      const amount = parseFloat(cashAmount) || 0;
+      if (amount < totalAmount) {
+        setSnackbarMessage(`Insufficient amount. Still need UGX ${(totalAmount - amount).toLocaleString()}`);
+        setOpenSnackbar(true);
+        return;
+      }
     }
 
     const transaction = {
@@ -673,7 +684,9 @@ const SalesPage = () => {
       total: totalAmount,
       amountTendered: amountTendered,
       changeDue: changeDue,
-      status: 'completed'
+      status: 'completed',
+      amountTendered: selectedPaymentMethod.type === 'cash' ? parseFloat(cashAmount) : 0,
+      changeDue: selectedPaymentMethod.type === 'cash' ? changeDue : 0
     };
 
     // Update stock levels
@@ -713,6 +726,14 @@ const SalesPage = () => {
   const taxRate = 0.18; // 18% VAT
   const taxAmount = (subtotal - discountAmount) * taxRate;
   const totalAmount = subtotal - discountAmount + taxAmount;
+  useEffect(() => {
+    if (selectedPaymentMethod?.type === 'cash' && cashAmount) {
+      const amount = parseFloat(cashAmount) || 0;
+      setChangeDue(amount - totalAmount);
+    } else {
+      setChangeDue(0);
+    }
+  }, [cashAmount, totalAmount, selectedPaymentMethod]);
 
   // Steps for checkout process
   const steps = ['Cart Review', 'Customer Info', 'Payment'];
@@ -972,7 +993,58 @@ const SalesPage = () => {
             {selectedPaymentMethod.name} Details
           </Typography>
           
-          {selectedPaymentMethod.fields.map((field) => (
+          {/* Cash Payment Section */}
+          {selectedPaymentMethod.type === 'cash' && (
+            <Box sx={{ mb: 3 }}>
+              <TextField
+                label="Amount Received (UGX)"
+                fullWidth
+                margin="normal"
+                value={cashAmount}
+                onChange={(e) => setCashAmount(e.target.value)}
+                type="number"
+                inputProps={{ min: 0, step: 100 }}
+                required
+              />
+              
+              <Box sx={{ 
+                mt: 2, 
+                p: 2, 
+                bgcolor: '#f5f5f5', 
+                borderRadius: 1,
+                border: '1px solid',
+                borderColor: changeDue >= 0 ? 'success.light' : 'error.light'
+              }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography>Total Amount:</Typography>
+                  <Typography fontWeight="bold">UGX {totalAmount.toLocaleString()}</Typography>
+                </Box>
+                
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography>Amount Tendered:</Typography>
+                  <Typography fontWeight="bold">UGX {(parseFloat(cashAmount) || 0).toLocaleString()}</Typography>
+                </Box>
+                
+                <Divider sx={{ my: 1 }} />
+                
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography variant="subtitle1">
+                    {changeDue >= 0 ? 'Change Due:' : 'Amount Due:'}
+                  </Typography>
+                  <Typography 
+                    variant="subtitle1"
+                    color={changeDue >= 0 ? 'success.main' : 'error.main'}
+                    fontWeight="bold"
+                  >
+                    UGX {Math.abs(changeDue).toLocaleString()}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          )}
+          
+          {/* Other payment method fields */}
+          {selectedPaymentMethod.type !== 'cash' && selectedPaymentMethod.fields.map((field) => (
             <TextField
               key={field}
               label={field}
@@ -981,31 +1053,12 @@ const SalesPage = () => {
               value={paymentDetails[field] || ''}
               onChange={(e) => handlePaymentDetailChange(field, e.target.value)}
               required
-              type={field === "Amount Tendered" ? "number" : "text"}
             />
           ))}
-          
-          {/* Show change due or balance for cash payments */}
-          {selectedPaymentMethod?.type === 'cash' && (
-            <Box sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
-              <Typography variant="body1" gutterBottom>
-                Total Amount: UGX {totalAmount.toLocaleString()}
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                Amount Tendered: UGX {amountTendered.toLocaleString()}
-              </Typography>
-              <Typography 
-                variant="h6" 
-                color={changeDue >= 0 ? 'success.main' : 'error.main'}
-              >
-                {changeDue >= 0 ? 'Change Due:' : 'Balance:'} 
-                UGX {Math.abs(changeDue).toLocaleString()}
-              </Typography>
-            </Box>
-          )}
         </Box>
       )}
     </Box>
+  
   );
 
   // Main render
