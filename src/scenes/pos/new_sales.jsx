@@ -75,6 +75,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 
+
 // Product Data
 const productData = [
   { 
@@ -381,6 +382,8 @@ const SalesPage = () => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [activeTab, setActiveTab] = useState(0);
   const [discountCode, setDiscountCode] = useState("");
+  const [amountTendered, setAmountTendered] = useState(0);
+  const [changeDue, setChangeDue] = useState(0);
   const [appliedDiscount, setAppliedDiscount] = useState(null);
   const [customerDetails, setCustomerDetails] = useState({
     name: "",
@@ -603,6 +606,24 @@ const SalesPage = () => {
     setCart(cart.filter((item) => item.id !== productId));
   };
 
+  const handleQuantityChange = (productId, newQuantity) => {
+    const quantity = parseInt(newQuantity) || 0;
+    if (quantity < 1) return;
+    
+    const product = productData.find(p => p.id === productId);
+    if (quantity > product.stock) {
+      setSnackbarMessage(`Only ${product.stock} items available in stock`);
+      setOpenSnackbar(true);
+      return;
+    }
+    
+    setCart(
+      cart.map((item) =>
+        item.id === productId ? { ...item, quantity: quantity } : item
+      )
+    );
+  };
+
   const handleIncreaseQuantity = (productId) => {
     const product = cart.find(item => item.id === productId);
     const originalProduct = productData.find(p => p.id === productId);
@@ -630,8 +651,15 @@ const SalesPage = () => {
     );
   };
 
-  // Payment Processing
+  // Payment Processing (updated for cash handling)
   const handleCompleteSale = () => {
+    // Check if paying with cash and amount is sufficient
+    if (selectedPaymentMethod?.type === 'cash' && amountTendered < totalAmount) {
+      setSnackbarMessage(`Amount tendered (${amountTendered}) is less than total amount (${totalAmount})`);
+      setOpenSnackbar(true);
+      return;
+    }
+
     const transaction = {
       id: `TXN-${Date.now()}`,
       date: new Date(),
@@ -643,6 +671,8 @@ const SalesPage = () => {
       discount: discountAmount,
       tax: taxAmount,
       total: totalAmount,
+      amountTendered: amountTendered,
+      changeDue: changeDue,
       status: 'completed'
     };
 
@@ -670,12 +700,14 @@ const SalesPage = () => {
     setPaymentDetails({});
     setActiveStep(0);
     setCartDrawerOpen(false);
+    setAmountTendered(0);
+    setChangeDue(0);
     
     setSnackbarMessage("Payment processed successfully!");
     setOpenSnackbar(true);
   };
 
-  // Calculations
+  // Calculations (same as before)
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountAmount = appliedDiscount ? (subtotal * appliedDiscount.discount) / 100 : 0;
   const taxRate = 0.18; // 18% VAT
@@ -685,7 +717,7 @@ const SalesPage = () => {
   // Steps for checkout process
   const steps = ['Cart Review', 'Customer Info', 'Payment'];
 
-  // Handle step changes
+  // Handle step changes (same as before)
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   };
@@ -694,18 +726,18 @@ const SalesPage = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
-  // Filter cart items based on search text
+  // Filter cart items based on search text (same as before)
   const filteredCartItems = cart.filter(item => 
     item.name.toLowerCase().includes(cartSearchText.toLowerCase())
   );
 
-  // Search all products for adding to cart
+  // Search all products for adding to cart (same as before)
   const searchAllProducts = productData.filter(product => 
     product.name.toLowerCase().includes(cartSearchText.toLowerCase()) &&
     !cart.some(item => item.id === product.id)
   );
 
-  // Render functions for each step
+  // Render functions for each step (updated for quantity input and cash payment)
   const renderCartReview = () => (
     <Box>
       <TextField
@@ -763,13 +795,14 @@ const SalesPage = () => {
         {filteredCartItems.map((item) => (
           <ListItem key={item.id} secondaryAction={
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton onClick={() => handleDecreaseQuantity(item.id)}>
-                <RemoveIcon />
-              </IconButton>
-              <Typography sx={{ mx: 1 }}>{item.quantity}</Typography>
-              <IconButton onClick={() => handleIncreaseQuantity(item.id)}>
-                <AddIcon />
-              </IconButton>
+              <TextField
+                type="number"
+                value={item.quantity}
+                onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                inputProps={{ min: 1, max: item.stock }}
+                size="small"
+                sx={{ width: 70 }}
+              />
               <IconButton 
                 onClick={() => handleRemoveFromCart(item.id)}
                 color="error"
@@ -948,8 +981,28 @@ const SalesPage = () => {
               value={paymentDetails[field] || ''}
               onChange={(e) => handlePaymentDetailChange(field, e.target.value)}
               required
+              type={field === "Amount Tendered" ? "number" : "text"}
             />
           ))}
+          
+          {/* Show change due or balance for cash payments */}
+          {selectedPaymentMethod?.type === 'cash' && (
+            <Box sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+              <Typography variant="body1" gutterBottom>
+                Total Amount: UGX {totalAmount.toLocaleString()}
+              </Typography>
+              <Typography variant="body1" gutterBottom>
+                Amount Tendered: UGX {amountTendered.toLocaleString()}
+              </Typography>
+              <Typography 
+                variant="h6" 
+                color={changeDue >= 0 ? 'success.main' : 'error.main'}
+              >
+                {changeDue >= 0 ? 'Change Due:' : 'Balance:'} 
+                UGX {Math.abs(changeDue).toLocaleString()}
+              </Typography>
+            </Box>
+          )}
         </Box>
       )}
     </Box>
