@@ -20,7 +20,13 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Chip
+  Chip,
+  Avatar,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  Badge
 } from '@mui/material';
 import {
   AccountBalance,
@@ -42,7 +48,14 @@ import {
   CreditCard,
   Savings,
   RequestQuote,
-  MoneyOff
+  MoneyOff,
+  Description,
+  Money,
+  LocalAtm,
+  Schedule,
+  DoneAll,
+  Warning,
+  Error
 } from '@mui/icons-material';
 import { DataGrid } from '@mui/x-data-grid';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
@@ -84,13 +97,16 @@ const generateFinancialData = (timeFilter) => {
     }
 
     const revenue = Math.floor(Math.random() * 10000 * multipliers) + 5000 * multipliers;
+    const cogs = Math.floor(revenue * 0.4 * (0.9 + Math.random() * 0.2)); // Cost of goods sold
     const expenses = Math.floor(Math.random() * 6000 * multipliers) + 3000 * multipliers;
-    const profit = revenue - expenses;
+    const profit = revenue - expenses - cogs;
     const cashFlow = profit + Math.floor(Math.random() * 2000 * multipliers) - 1000 * multipliers;
 
     data.push({
       date: dateLabel,
       revenue,
+      cogs,
+      grossProfit: revenue - cogs,
       expenses,
       profit,
       cashFlow,
@@ -126,6 +142,30 @@ const generateRecentTransactions = () => {
   }));
 };
 
+const generateInvoicesOwed = () => {
+  const statuses = ['Paid', 'Overdue', 'Pending'];
+  return Array.from({ length: 5 }, (_, i) => ({
+    id: `INV-${1000 + i}`,
+    customer: `Customer ${i + 1}`,
+    amount: (Math.random() * 5000 + 1000).toFixed(2),
+    dueDate: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+    status: statuses[Math.floor(Math.random() * statuses.length)],
+    daysOverdue: Math.floor(Math.random() * 30)
+  }));
+};
+
+const generateBillsToPay = () => {
+  const statuses = ['Paid', 'Overdue', 'Pending'];
+  return Array.from({ length: 5 }, (_, i) => ({
+    id: `BILL-${2000 + i}`,
+    vendor: `Vendor ${i + 1}`,
+    amount: (Math.random() * 3000 + 500).toFixed(2),
+    dueDate: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+    status: statuses[Math.floor(Math.random() * statuses.length)],
+    daysUntilDue: Math.floor(Math.random() * 30)
+  }));
+};
+
 const generateBudgetData = () => {
   return [
     { name: 'Revenue', actual: 125000, budget: 120000 },
@@ -144,6 +184,8 @@ const FinancialDashboard = () => {
   const [financialData, setFinancialData] = useState([]);
   const [accountBalances, setAccountBalances] = useState([]);
   const [recentTransactions, setRecentTransactions] = useState([]);
+  const [invoicesOwed, setInvoicesOwed] = useState([]);
+  const [billsToPay, setBillsToPay] = useState([]);
   const [budgetData, setBudgetData] = useState([]);
   const [chartView, setChartView] = useState('profit');
   const [activeTab, setActiveTab] = useState('overview');
@@ -153,6 +195,8 @@ const FinancialDashboard = () => {
     setFinancialData(generateFinancialData(timeFilter));
     setAccountBalances(generateAccountBalances());
     setRecentTransactions(generateRecentTransactions());
+    setInvoicesOwed(generateInvoicesOwed());
+    setBillsToPay(generateBillsToPay());
     setBudgetData(generateBudgetData());
   }, [timeFilter]);
 
@@ -161,6 +205,14 @@ const FinancialDashboard = () => {
     const latest = financialData[financialData.length - 1] || {};
     const previous = financialData[financialData.length - 2] || {};
     
+    const totalInvoicesOwed = invoicesOwed
+      .filter(inv => inv.status !== 'Paid')
+      .reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
+      
+    const totalBillsToPay = billsToPay
+      .filter(bill => bill.status !== 'Paid')
+      .reduce((sum, bill) => sum + parseFloat(bill.amount), 0);
+    
     return {
       totalAssets: accountBalances.reduce((sum, acc) => sum + Math.max(0, acc.balance), 0),
       totalLiabilities: accountBalances.reduce((sum, acc) => sum + Math.min(0, acc.balance), 0),
@@ -168,6 +220,14 @@ const FinancialDashboard = () => {
       revenue: latest.revenue || 0,
       revenueChange: latest.revenue && previous.revenue 
         ? ((latest.revenue - previous.revenue) / previous.revenue * 100).toFixed(1)
+        : 0,
+      cogs: latest.cogs || 0,
+      cogsChange: latest.cogs && previous.cogs
+        ? ((latest.cogs - previous.cogs) / previous.cogs * 100).toFixed(1)
+        : 0,
+      grossProfit: latest.grossProfit || 0,
+      grossProfitChange: latest.grossProfit && previous.grossProfit
+        ? ((latest.grossProfit - previous.grossProfit) / previous.grossProfit * 100).toFixed(1)
         : 0,
       expenses: latest.expenses || 0,
       expensesChange: latest.expenses && previous.expenses
@@ -180,33 +240,14 @@ const FinancialDashboard = () => {
       cashFlow: latest.cashFlow || 0,
       cashFlowChange: latest.cashFlow && previous.cashFlow
         ? ((latest.cashFlow - previous.cashFlow) / previous.cashFlow * 100).toFixed(1)
-        : 0
+        : 0,
+      accountsReceivable: latest.accountsReceivable || 0,
+      accountsPayable: latest.accountsPayable || 0,
+      totalInvoicesOwed,
+      totalBillsToPay,
+      overdueInvoices: invoicesOwed.filter(inv => inv.status === 'Overdue').length,
+      overdueBills: billsToPay.filter(bill => bill.status === 'Overdue').length
     };
-  };
-
-  // Handle tab navigation
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    switch(tab) {
-      case 'cashflow':
-        navigate('/reports/cash');
-        break;
-      case 'profitability':
-        navigate('/reports/profit-and-loss');
-        break;
-      case 'balances':
-        navigate('/reports/balance-sheet');
-        break;
-      case 'trialbalance':
-        navigate('/reports/trial-balance');
-        break;
-      case 'accountbalance':
-        navigate('/reports/account-balance');
-        break;
-      default:
-        // Stay on dashboard for overview
-        break;
-    }
   };
 
   const summary = calculateSummary();
@@ -235,6 +276,76 @@ const FinancialDashboard = () => {
             params.value === 'Pending' ? 'warning' : 'info'
           }
         />
+      )
+    }
+  ];
+
+  // Columns for invoices owed
+  const invoiceColumns = [
+    { field: 'id', headerName: 'Invoice #', width: 100 },
+    { field: 'customer', headerName: 'Customer', width: 150 },
+    { field: 'amount', headerName: 'Amount', width: 120,
+      renderCell: (params) => (
+        <Typography fontWeight="bold">
+          ${params.value}
+        </Typography>
+      )
+    },
+    { field: 'dueDate', headerName: 'Due Date', width: 120 },
+    { field: 'status', headerName: 'Status', width: 120,
+      renderCell: (params) => (
+        <Chip
+          label={params.value}
+          size="small"
+          color={
+            params.value === 'Paid' ? 'success' :
+            params.value === 'Overdue' ? 'error' : 'warning'
+          }
+        />
+      )
+    },
+    { field: 'daysOverdue', headerName: 'Days', width: 80,
+      renderCell: (params) => (
+        params.row.status === 'Overdue' ? (
+          <Typography color="error">
+            {params.value}d
+          </Typography>
+        ) : null
+      )
+    }
+  ];
+
+  // Columns for bills to pay
+  const billsColumns = [
+    { field: 'id', headerName: 'Bill #', width: 100 },
+    { field: 'vendor', headerName: 'Vendor', width: 150 },
+    { field: 'amount', headerName: 'Amount', width: 120,
+      renderCell: (params) => (
+        <Typography fontWeight="bold" color="error">
+          ${params.value}
+        </Typography>
+      )
+    },
+    { field: 'dueDate', headerName: 'Due Date', width: 120 },
+    { field: 'status', headerName: 'Status', width: 120,
+      renderCell: (params) => (
+        <Chip
+          label={params.value}
+          size="small"
+          color={
+            params.value === 'Paid' ? 'success' :
+            params.value === 'Overdue' ? 'error' : 'warning'
+          }
+        />
+      )
+    },
+    { field: 'daysUntilDue', headerName: 'Due In', width: 80,
+      renderCell: (params) => (
+        params.row.status === 'Pending' ? (
+          <Typography color={params.value <= 7 ? 'error' : 'inherit'}>
+            {params.value}d
+          </Typography>
+        ) : null
       )
     }
   ];
@@ -310,56 +421,9 @@ const FinancialDashboard = () => {
         </Box>
       </Box>
 
-      {/* Navigation Tabs */}
-      <Box mb={3}>
-        <Paper sx={{ display: 'flex', overflow: 'auto' }}>
-          <Button 
-            variant={activeTab === 'overview' ? 'contained' : 'text'} 
-            onClick={() => setActiveTab('overview')}
-            startIcon={<Assessment />}
-          >
-            Overview
-          </Button>
-          <Button 
-            variant={activeTab === 'cashflow' ? 'contained' : 'text'} 
-            onClick={() => handleTabChange('cashflow')}
-            startIcon={<ShowChart />}
-          >
-            Cash Flow
-          </Button>
-          <Button 
-            variant={activeTab === 'profitability' ? 'contained' : 'text'} 
-            onClick={() => handleTabChange('profitability')}
-            startIcon={<AttachMoney />}
-          >
-            Profitability
-          </Button>
-          <Button 
-            variant={activeTab === 'balances' ? 'contained' : 'text'} 
-            onClick={() => handleTabChange('balances')}
-            startIcon={<AccountBalance />}
-          >
-            Balances
-          </Button>
-          <Button 
-            variant={activeTab === 'trialbalance' ? 'contained' : 'text'} 
-            onClick={() => handleTabChange('trialbalance')}
-            startIcon={<Receipt />}
-          >
-            Trial Balance
-          </Button>
-          <Button 
-            variant={activeTab === 'accountbalance' ? 'contained' : 'text'} 
-            onClick={() => handleTabChange('accountbalance')}
-            startIcon={<AccountBalanceWallet />}
-          >
-            Account Balance
-          </Button>
-        </Paper>
-      </Box>
-
-      {/* Summary Cards */}
+      {/* Summary Cards - Top Row */}
       <Grid container spacing={3} mb={3}>
+        {/* Net Worth */}
         <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
@@ -385,6 +449,8 @@ const FinancialDashboard = () => {
             </CardContent>
           </Card>
         </Grid>
+
+        {/* Revenue */}
         <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
@@ -408,35 +474,42 @@ const FinancialDashboard = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" mb={1}>
-                <MoneyOff color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6" color="textSecondary">Expenses</Typography>
-              </Box>
-              <Typography variant="h4" fontWeight="bold">
-                UGX{summary.expenses.toLocaleString()}
-              </Typography>
-              <Box display="flex" alignItems="center" mt={1}>
-                {summary.expensesChange <= 0 ? (
-                  <TrendingUp sx={{ color: '#4caf50', mr: 1 }} />
-                ) : (
-                  <TrendingDown sx={{ color: '#f44336', mr: 1 }} />
-                )}
-                <Typography variant="body2" color={summary.expensesChange <= 0 ? '#4caf50' : '#f44336'}>
-                  {summary.expensesChange >= 0 ? '+' : ''}{summary.expensesChange}% from last {timeFilter}
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+
+        {/* Gross Profit */}
         <Grid item xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center" mb={1}>
                 <RequestQuote color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6" color="textSecondary">Profit</Typography>
+                <Typography variant="h6" color="textSecondary">Gross Profit</Typography>
+              </Box>
+              <Typography variant="h4" fontWeight="bold" color={summary.grossProfit >= 0 ? 'inherit' : 'error'}>
+                UGX{Math.abs(summary.grossProfit).toLocaleString()}
+              </Typography>
+              <Box display="flex" alignItems="center" mt={1}>
+                {summary.grossProfitChange >= 0 ? (
+                  <TrendingUp sx={{ color: '#4caf50', mr: 1 }} />
+                ) : (
+                  <TrendingDown sx={{ color: '#f44336', mr: 1 }} />
+                )}
+                <Typography variant="body2" color={summary.grossProfitChange >= 0 ? '#4caf50' : '#f44336'}>
+                  {summary.grossProfitChange >= 0 ? '+' : ''}{summary.grossProfitChange}% from last {timeFilter}
+                </Typography>
+              </Box>
+              <Typography variant="caption" color="textSecondary">
+                Margin: {(summary.grossProfit / summary.revenue * 100).toFixed(1)}%
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Net Profit */}
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box display="flex" alignItems="center" mb={1}>
+                <RequestQuote color="primary" sx={{ mr: 1 }} />
+                <Typography variant="h6" color="textSecondary">Net Profit</Typography>
               </Box>
               <Typography variant="h4" fontWeight="bold" color={summary.profit >= 0 ? 'inherit' : 'error'}>
                 UGX{Math.abs(summary.profit).toLocaleString()}
@@ -449,6 +522,114 @@ const FinancialDashboard = () => {
                 )}
                 <Typography variant="body2" color={summary.profitChange >= 0 ? '#4caf50' : '#f44336'}>
                   {summary.profitChange >= 0 ? '+' : ''}{summary.profitChange}% from last {timeFilter}
+                </Typography>
+              </Box>
+              <Typography variant="caption" color="textSecondary">
+                Margin: {(summary.profit / summary.revenue * 100).toFixed(1)}%
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Summary Cards - Second Row */}
+      <Grid container spacing={3} mb={3}>
+        {/* Invoices Owed */}
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box display="flex" alignItems="center" mb={1}>
+                <Description color="primary" sx={{ mr: 1 }} />
+                <Typography variant="h6" color="textSecondary">Invoices Owed</Typography>
+              </Box>
+              <Typography variant="h4" fontWeight="bold">
+                UGX{summary.totalInvoicesOwed.toLocaleString()}
+              </Typography>
+              <Box display="flex" alignItems="center" mt={1}>
+                <Box display="flex" alignItems="center" mr={2}>
+                  <Error color="error" sx={{ mr: 0.5 }} />
+                  <Typography variant="body2" color="error">
+                    {summary.overdueInvoices} overdue
+                  </Typography>
+                </Box>
+                <Box display="flex" alignItems="center">
+                  <Schedule color="warning" sx={{ mr: 0.5 }} />
+                  <Typography variant="body2" color="textSecondary">
+                    {invoicesOwed.filter(inv => inv.status === 'Pending').length} pending
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Bills to Pay */}
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box display="flex" alignItems="center" mb={1}>
+                <Payment color="primary" sx={{ mr: 1 }} />
+                <Typography variant="h6" color="textSecondary">Bills to Pay</Typography>
+              </Box>
+              <Typography variant="h4" fontWeight="bold" color="error">
+                UGX{summary.totalBillsToPay.toLocaleString()}
+              </Typography>
+              <Box display="flex" alignItems="center" mt={1}>
+                <Box display="flex" alignItems="center" mr={2}>
+                  <Error color="error" sx={{ mr: 0.5 }} />
+                  <Typography variant="body2" color="error">
+                    {summary.overdueBills} overdue
+                  </Typography>
+                </Box>
+                <Box display="flex" alignItems="center">
+                  <Schedule color="warning" sx={{ mr: 0.5 }} />
+                  <Typography variant="body2" color="textSecondary">
+                    {billsToPay.filter(bill => bill.status === 'Pending').length} pending
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Accounts Receivable */}
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box display="flex" alignItems="center" mb={1}>
+                <LocalAtm color="primary" sx={{ mr: 1 }} />
+                <Typography variant="h6" color="textSecondary">Accounts Receivable</Typography>
+              </Box>
+              <Typography variant="h4" fontWeight="bold">
+                UGX{summary.accountsReceivable.toLocaleString()}
+              </Typography>
+              <Box display="flex" alignItems="center" mt={1}>
+                <Typography variant="body2" color="textSecondary">
+                  {summary.totalInvoicesOwed > 0 ? (
+                    <span>{Math.round(summary.totalInvoicesOwed / summary.accountsReceivable * 100)}% from open invoices</span>
+                  ) : 'No open invoices'}
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Accounts Payable */}
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Box display="flex" alignItems="center" mb={1}>
+                <MoneyOff color="primary" sx={{ mr: 1 }} />
+                <Typography variant="h6" color="textSecondary">Accounts Payable</Typography>
+              </Box>
+              <Typography variant="h4" fontWeight="bold" color="error">
+                UGX{summary.accountsPayable.toLocaleString()}
+              </Typography>
+              <Box display="flex" alignItems="center" mt={1}>
+                <Typography variant="body2" color="textSecondary">
+                  {summary.totalBillsToPay > 0 ? (
+                    <span>{Math.round(summary.totalBillsToPay / summary.accountsPayable * 100)}% from open bills</span>
+                  ) : 'No open bills'}
                 </Typography>
               </Box>
             </CardContent>
@@ -472,8 +653,10 @@ const FinancialDashboard = () => {
                   label="View"
                   onChange={(e) => setChartView(e.target.value)}
                 >
-                  <MenuItem value="profit">Profit</MenuItem>
+                  <MenuItem value="profit">Net Profit</MenuItem>
+                  <MenuItem value="grossProfit">Gross Profit</MenuItem>
                   <MenuItem value="revenue">Revenue</MenuItem>
+                  <MenuItem value="cogs">COGS</MenuItem>
                   <MenuItem value="expenses">Expenses</MenuItem>
                   <MenuItem value="cashFlow">Cash Flow</MenuItem>
                 </Select>
@@ -486,7 +669,7 @@ const FinancialDashboard = () => {
                   <XAxis dataKey="date" />
                   <YAxis />
                   <Tooltip 
-                    formatter={(value) => [`$${value.toLocaleString()}`, chartView.charAt(0).toUpperCase() + chartView.slice(1)]}
+                    formatter={(value) => [`$${value.toLocaleString()}`, chartView === 'cogs' ? 'COGS' : chartView.charAt(0).toUpperCase() + chartView.slice(1)]}
                   />
                   <Legend />
                   {chartView === 'profit' && (
@@ -495,7 +678,15 @@ const FinancialDashboard = () => {
                       dataKey="profit"
                       stroke={theme.palette.primary.main}
                       activeDot={{ r: 8 }}
-                      name="Profit (UGX)"
+                      name="Net Profit (UGX)"
+                    />
+                  )}
+                  {chartView === 'grossProfit' && (
+                    <Line
+                      type="monotone"
+                      dataKey="grossProfit"
+                      stroke="#4caf50"
+                      name="Gross Profit (UGX)"
                     />
                   )}
                   {chartView === 'revenue' && (
@@ -504,6 +695,14 @@ const FinancialDashboard = () => {
                       dataKey="revenue"
                       stroke="#4caf50"
                       name="Revenue (UGX)"
+                    />
+                  )}
+                  {chartView === 'cogs' && (
+                    <Line
+                      type="monotone"
+                      dataKey="cogs"
+                      stroke="#f44336"
+                      name="COGS (UGX)"
                     />
                   )}
                   {chartView === 'expenses' && (
@@ -580,19 +779,19 @@ const FinancialDashboard = () => {
       {/* Bottom Row */}
       <Grid container spacing={3} mt={0}>
         {/* Recent Transactions */}
-        <Grid item xs={12} md={8}>
-          <Card sx={{ p: 2 }}>
+        <Grid item xs={12} md={4}>
+          <Card sx={{ p: 2, height: '100%' }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
               <Typography variant="h6">Recent Transactions</Typography>
               <Button 
                 size="small" 
                 startIcon={<Add />}
-                href="/transactions/new"
+                href="/pos/new_sales"
               >
                 Add Transaction
               </Button>
             </Box>
-            <Box sx={{ height: 400 }}>
+            <Box sx={{ height: 300 }}>
               <DataGrid
                 rows={recentTransactions}
                 columns={transactionColumns}
@@ -603,55 +802,51 @@ const FinancialDashboard = () => {
           </Card>
         </Grid>
 
-        {/* Financial Ratios and Budget */}
+        {/* Invoices Owed */}
         <Grid item xs={12} md={4}>
-          <Card sx={{ p: 2, mb: 3 }}>
-            <Typography variant="h6" mb={2}>Budget vs Actual</Typography>
-            <Box height={200}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={budgetData}
-                  layout="vertical"
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis dataKey="name" type="category" />
-                  <Tooltip 
-                    formatter={(value) => [`$${value.toLocaleString()}`]}
-                  />
-                  <Legend />
-                  <Bar dataKey="actual" fill="#8884d8" name="Actual" />
-                  <Bar dataKey="budget" fill="#82ca9d" name="Budget" />
-                </BarChart>
-              </ResponsiveContainer>
+          <Card sx={{ p: 2, height: '100%' }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h6">Invoices Owed</Typography>
+              <Button 
+                size="small" 
+                startIcon={<Add />}
+                href="/payment"
+              >
+                Create Invoice
+              </Button>
+            </Box>
+            <Box sx={{ height: 300 }}>
+              <DataGrid
+                rows={invoicesOwed}
+                columns={invoiceColumns}
+                pageSize={5}
+                rowsPerPageOptions={[5]}
+              />
             </Box>
           </Card>
+        </Grid>
 
-          <Card sx={{ p: 2 }}>
-            <Typography variant="h6" mb={2}>Financial Ratios</Typography>
-            <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
-                <TableBody>
-                  <TableRow>
-                    <TableCell>Current Ratio</TableCell>
-                    <TableCell align="right">{(summary.totalAssets / Math.abs(summary.totalLiabilities)).toFixed(2)}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Profit Margin</TableCell>
-                    <TableCell align="right">{(summary.profit / summary.revenue * 100).toFixed(1)}%</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Operating Margin</TableCell>
-                    <TableCell align="right">{((summary.profit + 15000) / summary.revenue * 100).toFixed(1)}%</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>ROI</TableCell>
-                    <TableCell align="right">{(summary.profit / summary.netWorth * 100).toFixed(1)}%</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
+        {/* Bills to Pay */}
+        <Grid item xs={12} md={4}>
+          <Card sx={{ p: 2, height: '100%' }}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h6">Bills to Pay</Typography>
+              <Button 
+                size="small" 
+                startIcon={<Add />}
+                href="/bills/manage"
+              >
+                Add Bill
+              </Button>
+            </Box>
+            <Box sx={{ height: 300 }}>
+              <DataGrid
+                rows={billsToPay}
+                columns={billsColumns}
+                pageSize={5}
+                rowsPerPageOptions={[5]}
+              />
+            </Box>
           </Card>
         </Grid>
       </Grid>
@@ -687,7 +882,7 @@ const FinancialDashboard = () => {
         </Grid>
         <Grid item xs={12} md={6}>
           <Card sx={{ p: 2 }}>
-            <Typography variant="h6" mb={2}>Revenue Breakdown</Typography>
+          <Typography variant="h6" mb={2}>Revenue Breakdown</Typography>
             <Box height={300}>
               <ResponsiveContainer width="100%" height="100%">
                 <RechartsPieChart>
@@ -703,11 +898,41 @@ const FinancialDashboard = () => {
                     label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                   >
                     {revenueCategories.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip formatter={(value) => [`$${value.toLocaleString()}`]} />
                 </RechartsPieChart>
+              </ResponsiveContainer>
+            </Box>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Budget vs Actual */}
+      <Grid container spacing={3} mt={0}>
+        <Grid item xs={12}>
+          <Card sx={{ p: 2 }}>
+            <Typography variant="h6" mb={2}>Budget vs Actual</Typography>
+            <Box height={400}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={budgetData}
+                  margin={{
+                    top: 20,
+                    right: 30,
+                    left: 20,
+                    bottom: 5,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => [`$${value.toLocaleString()}`]} />
+                  <Legend />
+                  <Bar dataKey="budget" fill="#8884d8" name="Budget" />
+                  <Bar dataKey="actual" fill="#82ca9d" name="Actual" />
+                </BarChart>
               </ResponsiveContainer>
             </Box>
           </Card>
