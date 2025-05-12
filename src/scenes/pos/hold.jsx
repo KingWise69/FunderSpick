@@ -102,7 +102,7 @@ const HoldOrdersPage = () => {
     <Box p={3}>
       {/* Page Title */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h4">Hold Orders Management</Typography>
+        <Typography variant="h4">Order Management</Typography>
         <Button
           variant="contained"
           sx={{
